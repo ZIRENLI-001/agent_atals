@@ -1,6 +1,6 @@
 # agent atals
 
-An interactive static map for AI agent stack selection.
+A browsable atlas for AI agent stack selection, ecosystem scanning, and scenario-based recommendations.
 
 ## Online
 
@@ -12,27 +12,13 @@ Repository:
 
 [https://github.com/ZIRENLI-001/agent_atals](https://github.com/ZIRENLI-001/agent_atals)
 
-## Local preview
+## Preview
 
-Open `agent_stack.html` directly in a browser, or use `index.html` as the entry page.
+![agent atals preview](./image.png)
 
-## GitHub Pages
+## What It Covers
 
-This repo is configured for GitHub Pages via GitHub Actions.
-
-After pushing to GitHub:
-
-1. Open the repository settings.
-2. Go to `Pages`.
-3. Ensure the source is `GitHub Actions`.
-4. The site will be published automatically on push to `main`.
-
-Published URL:
-
-[https://zirenli-001.github.io/agent_atals/](https://zirenli-001.github.io/agent_atals/)
-
-## Files
-
-- `index.html` — GitHub Pages entry point
-- `agent_stack.html` — main static page
-- `assets/` — local image assets
+- scenario playbooks for common business domains
+- frontend, backend, database, serving, infra, and agent framework choices
+- ecosystem map across vertical agents, hosting, observability, memory, tools, and storage
+- common production issues and countermeasures by system layer
