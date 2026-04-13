@@ -14,7 +14,7 @@ Repository:
 
 ## Preview
 
-![agent atals preview](./image.png)
+![agent atals homepage preview](./assets/preview-home.png)
 
 ## What It Covers
 
