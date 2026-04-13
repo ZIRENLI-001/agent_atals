@@ -1,0 +1,289 @@
+[
+  {
+    "name": "Decagon",
+    "site": "https://decagon.ai",
+    "icon_url": "https://cdn.prod.website-files.com/683e5da0b6d8a19de4875ae7/683e5da0b6d8a19de4875b60_webclip.png",
+    "file": "assets/logos/decagon.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Sierra",
+    "site": "https://sierra.ai",
+    "icon_url": "https://sierra.ai/icon.svg",
+    "file": "assets/logos/sierra.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "Harvey",
+    "site": "https://www.harvey.ai",
+    "icon_url": "https://www.harvey.ai/icons/brand-favicon.png",
+    "file": "assets/logos/harvey.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Lindy",
+    "site": "https://www.lindy.ai",
+    "icon_url": "https://cdn.prod.website-files.com/63e15df811f9df22b231e58f/6733c56c500492bf748bb383_256.png",
+    "file": "assets/logos/lindy.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "11x",
+    "site": "https://11x.ai",
+    "error": "<urlopen error timed out>"
+  },
+  {
+    "name": "Factory",
+    "site": "https://factory.ai",
+    "icon_url": "https://factory.ai/favicon.svg",
+    "file": "assets/logos/factory.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "Letta",
+    "site": "https://www.letta.com",
+    "icon_url": "https://www.letta.com/assets/images/webclip.png",
+    "file": "assets/logos/letta.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "LangGraph Platform",
+    "site": "https://www.langchain.com",
+    "icon_url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/69a17e4a429d54e956e2a763_favicon.png",
+    "file": "assets/logos/langgraph-platform.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Assistants API",
+    "site": "https://platform.openai.com",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "name": "Bedrock Agents",
+    "site": "https://aws.amazon.com/bedrock/agents/",
+    "icon_url": "https://a0.awsstatic.com/libra-css/images/site/touch-icon-iphone-114-smile.png",
+    "file": "assets/logos/bedrock-agents.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "LiveKit Agents",
+    "site": "https://livekit.io",
+    "error": "HTTP Error 308: Permanent Redirect"
+  },
+  {
+    "name": "LangSmith",
+    "site": "https://www.langchain.com/langsmith/observability",
+    "icon_url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/69a17e4a429d54e956e2a763_favicon.png",
+    "file": "assets/logos/langsmith.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Phoenix",
+    "site": "https://arize.com/phoenix/",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "Langfuse",
+    "site": "https://langfuse.com",
+    "icon_url": "https://langfuse.com/apple-touch-icon.png",
+    "file": "assets/logos/langfuse.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Braintrust",
+    "site": "https://www.braintrust.dev",
+    "icon_url": "https://www.braintrust.dev/icon180.png?v=2",
+    "file": "assets/logos/braintrust.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "LangGraph",
+    "site": "https://www.langchain.com/langgraph",
+    "icon_url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/69a17e4a429d54e956e2a763_favicon.png",
+    "file": "assets/logos/langgraph.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "AutoGen",
+    "site": "https://microsoft.github.io/autogen/",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "LlamaIndex",
+    "site": "https://www.llamaindex.ai",
+    "icon_url": "https://www.llamaindex.ai/favicon.svg",
+    "file": "assets/logos/llamaindex.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "CrewAI",
+    "site": "https://www.crewai.com",
+    "error": "<urlopen error timed out>"
+  },
+  {
+    "name": "PydanticAI",
+    "site": "https://pydantic.dev/docs/ai/overview/",
+    "icon_url": "https://pydantic.dev/docs/favicon.png",
+    "file": "assets/logos/pydanticai.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Semantic Kernel",
+    "site": "https://learn.microsoft.com/en-us/semantic-kernel/",
+    "icon_url": "https://learn.microsoft.com/en-us/media/open-graph-image.png",
+    "file": "assets/logos/semantic-kernel.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "MemGPT",
+    "site": "https://www.letta.com/",
+    "icon_url": "https://www.letta.com/assets/images/webclip.png",
+    "file": "assets/logos/memgpt.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Zep",
+    "site": "https://www.getzep.com",
+    "icon_url": "https://www.getzep.com/zep-logo-icon-gradient-rgb-circle-favicon-32.png",
+    "file": "assets/logos/zep.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "LangMem",
+    "site": "https://www.langchain.com",
+    "icon_url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/69a17e4a429d54e956e2a763_favicon.png",
+    "file": "assets/logos/langmem.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "mem0",
+    "site": "https://mem0.ai",
+    "icon_url": "https://framerusercontent.com/images/evsVwEvZsWf4QuiXtNEqwqTVw.png",
+    "file": "assets/logos/mem0.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Composio",
+    "site": "https://composio.dev",
+    "icon_url": "https://composio.dev/apple-touch-icon.png",
+    "file": "assets/logos/composio.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Browserbase",
+    "site": "https://www.browserbase.com",
+    "icon_url": "https://www.browserbase.com/favicon.svg",
+    "file": "assets/logos/browserbase.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "Exa",
+    "site": "https://exa.ai",
+    "icon_url": "https://exa.ai/images/favicon-32x32.png",
+    "file": "assets/logos/exa.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Firecrawl",
+    "site": "https://www.firecrawl.dev",
+    "icon_url": "https://www.firecrawl.dev/favicon.png",
+    "file": "assets/logos/firecrawl.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "E2B",
+    "site": "https://e2b.dev",
+    "icon_url": "https://cdn.prod.website-files.com/6717bb6618f6a40d53ac2929/6751bc96a1a8a0ec9a69a57c_faviconV2.png",
+    "file": "assets/logos/e2b.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Modal",
+    "site": "https://modal.com",
+    "icon_url": "https://modal.com/assets/favicon.svg",
+    "file": "assets/logos/modal.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "Firecracker",
+    "site": "https://firecracker-microvm.github.io",
+    "icon_url": "https://firecracker-microvm.github.io/img/Favicon.png",
+    "file": "assets/logos/firecracker.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "gVisor",
+    "site": "https://gvisor.dev",
+    "icon_url": "https://gvisor.dev/assets/favicons/favicon-32x32.png",
+    "file": "assets/logos/gvisor.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "vLLM",
+    "site": "https://vllm.ai",
+    "icon_url": "https://vllm.ai/vLLM-Logo.svg",
+    "file": "assets/logos/vllm.svg",
+    "content_type": "image/svg+xml"
+  },
+  {
+    "name": "Ollama",
+    "site": "https://ollama.com",
+    "icon_url": "https://ollama.com/public/apple-touch-icon.png",
+    "file": "assets/logos/ollama.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "SGLang",
+    "site": "http://docs.sglang.io/",
+    "icon_url": "http://docs.sglang.io/_static/logo.ico",
+    "file": "assets/logos/sglang.ico",
+    "content_type": "image/vnd.microsoft.icon"
+  },
+  {
+    "name": "LiteLLM",
+    "site": "https://www.litellm.ai",
+    "icon_url": "https://framerusercontent.com/images/GtfMdzyrMj6FQY6lGLqI6bh2LYM.png",
+    "file": "assets/logos/litellm.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "BentoML",
+    "site": "https://www.bentoml.com",
+    "icon_url": "https://www.bentoml.com/bentoml-favicon/apple-touch-icon.png",
+    "file": "assets/logos/bentoml.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Qdrant",
+    "site": "https://qdrant.tech",
+    "icon_url": "https://qdrant.tech/images/social_preview.png",
+    "file": "assets/logos/qdrant.png",
+    "content_type": "image/png"
+  },
+  {
+    "name": "Pinecone",
+    "site": "https://www.pinecone.io",
+    "icon_url": "https://www.pinecone.io/favicon.ico",
+    "file": "assets/logos/pinecone.ico",
+    "content_type": "image/x-icon"
+  },
+  {
+    "name": "Weaviate",
+    "site": "https://weaviate.io",
+    "icon_url": "https://weaviate.io/img/favicon.ico",
+    "file": "assets/logos/weaviate.ico",
+    "content_type": "image/vnd.microsoft.icon"
+  },
+  {
+    "name": "Neon",
+    "site": "https://neon.tech",
+    "error": "HTTP Error 308: Permanent Redirect"
+  },
+  {
+    "name": "Supabase",
+    "site": "https://supabase.com",
+    "icon_url": "https://supabase.com/favicon/favicon-96x96.png",
+    "file": "assets/logos/supabase.png",
+    "content_type": "image/png"
+  }
+]

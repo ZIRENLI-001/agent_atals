@@ -1,0 +1,4004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 全栈技术选型指南</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0f0f11;
+    --surface: #17171a;
+    --surface2: #1e1e22;
+    --border: #2a2a30;
+    --border2: #3a3a42;
+    --text: #e8e8ec;
+    --text2: #9090a0;
+    --text3: #58586a;
+    --accent: #7c6cfc;
+    --accent2: #5ad8a6;
+    --accent3: #f4a535;
+    --accent4: #f06292;
+    --accent5: #4fc3f7;
+    --red: #ef5350;
+    --green: #66bb6a;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Noto Sans SC', -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -.02em;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-top: 4px;
+  }
+  .header-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .htag {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    background: transparent;
+  }
+  .htag:hover, .htag.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── LAYOUT ── */
+  .main { display: flex; min-height: calc(100vh - 89px); }
+
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 89px);
+    overflow-y: auto;
+  }
+
+  .nav-group { margin-bottom: 4px; }
+  .nav-group-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 6px 20px 4px;
+  }
+  .nav-item {
+    display: block;
+    padding: 6px 20px;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .1s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface); }
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(124,108,252,.06);
+  }
+
+  .content {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-x: hidden;
+  }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 40px; scroll-margin-top: 20px; }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .section-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .section-divider {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── CARDS GRID ── */
+  .cards { display: grid; gap: 8px; }
+  .cards.col2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .cards.col3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .cards.col4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .cards.col5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  @media (max-width: 900px) {
+    .cards.col4, .cards.col5 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .sidebar { display: none; }
+    .content { padding: 20px 16px; }
+  }
+  @media (max-width: 600px) {
+    .cards.col2, .cards.col3 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    position: relative;
+  }
+  .card:hover { border-color: var(--border2); background: var(--surface2); }
+  .card.active {
+    border-color: var(--accent);
+    background: rgba(124,108,252,.07);
+  }
+  .card-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .card-desc { font-size: 11px; color: var(--text2); line-height: 1.45; }
+
+  /* ── BADGES ── */
+  .badge {
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    line-height: 1.6;
+  }
+  .b-green  { background: rgba(90,216,166,.15); color: var(--accent2); border: 1px solid rgba(90,216,166,.25); }
+  .b-purple { background: rgba(124,108,252,.15); color: var(--accent); border: 1px solid rgba(124,108,252,.25); }
+  .b-amber  { background: rgba(244,165,53,.15); color: var(--accent3); border: 1px solid rgba(244,165,53,.25); }
+  .b-blue   { background: rgba(79,195,247,.15); color: var(--accent5); border: 1px solid rgba(79,195,247,.25); }
+  .b-red    { background: rgba(239,83,80,.15); color: var(--red); border: 1px solid rgba(239,83,80,.25); }
+  .b-gray   { background: rgba(144,144,160,.1); color: var(--text2); border: 1px solid rgba(144,144,160,.2); }
+  .b-pink   { background: rgba(240,98,146,.15); color: var(--accent4); border: 1px solid rgba(240,98,146,.25); }
+
+  /* ── DETAIL PANEL ── */
+  .panel {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-top: 8px;
+  }
+  .panel.show { display: block; }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .pc-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .pc-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pc-label.pros { color: var(--accent2); }
+  .pc-label.cons { color: var(--red); }
+  .pc-item {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.55;
+    display: flex;
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+  .pc-item:last-child { margin-bottom: 0; }
+  .pc-item .sym { flex-shrink: 0; margin-top: 1px; font-family: var(--mono); font-size: 10px; }
+  .sym-g { color: var(--accent2); }
+  .sym-r { color: var(--red); }
+  .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; }
+  .kv { font-size: 11px; color: var(--text2); line-height: 1.5; display: flex; gap: 5px; }
+  .kv b { color: var(--text); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+  .use-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(124,108,252,.12);
+    color: var(--accent);
+    border: 1px solid rgba(124,108,252,.2);
+    margin: 2px 3px 2px 0;
+  }
+  .use-tag.teal { background: rgba(90,216,166,.1); color: var(--accent2); border-color: rgba(90,216,166,.2); }
+  .use-tag.amber { background: rgba(244,165,53,.1); color: var(--accent3); border-color: rgba(244,165,53,.2); }
+  .use-tag.red { background: rgba(239,83,80,.1); color: var(--red); border-color: rgba(239,83,80,.2); }
+  .use-tag.blue { background: rgba(79,195,247,.1); color: var(--accent5); border-color: rgba(79,195,247,.2); }
+
+  /* ── COMPARE TABLE ── */
+  .ctable-wrap { overflow-x: auto; margin-top: 10px; }
+  .ctable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .ctable th {
+    text-align: left;
+    padding: 7px 12px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .ctable td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+  }
+  .ctable tr:last-child td { border-bottom: none; }
+  .ctable td.name { color: var(--text); font-weight: 500; white-space: nowrap; }
+  .ctable tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── TIPS ── */
+  .tip {
+    background: rgba(124,108,252,.06);
+    border: 1px solid rgba(124,108,252,.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .tip.amber {
+    background: rgba(244,165,53,.06);
+    border-color: rgba(244,165,53,.2);
+    border-left-color: var(--accent3);
+  }
+  .tip.green {
+    background: rgba(90,216,166,.06);
+    border-color: rgba(90,216,166,.2);
+    border-left-color: var(--accent2);
+  }
+  .tip b { color: var(--text); font-weight: 500; }
+
+  /* ── PROBLEMS ── */
+  .problems { display: flex; flex-direction: column; gap: 6px; }
+  .problem-groups { display: flex; flex-direction: column; gap: 14px; }
+  .problem-group {
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(40,73,98,.1);
+    background: rgba(255,255,255,.58);
+    box-shadow: 0 14px 32px rgba(16,32,51,.05);
+  }
+  .problem-group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .problem-group-title {
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .problem-group-desc {
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .prob {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+  }
+  .prob-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .prob-body { font-size: 11px; color: var(--text2); line-height: 1.55; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── VISUAL REFRESH ── */
+  :root {
+    --bg: #edf4f8;
+    --surface: rgba(255,255,255,.78);
+    --surface2: rgba(246,250,253,.92);
+    --border: rgba(40,73,98,.12);
+    --border2: rgba(40,73,98,.2);
+    --text: #102033;
+    --text2: #496278;
+    --text3: #7d92a4;
+    --accent: #2364ff;
+    --accent2: #1eb980;
+    --accent3: #e79d2c;
+    --accent4: #ef6f9b;
+    --accent5: #27a7d8;
+    --red: #da4d58;
+    --green: #129a6a;
+    --sans: 'Noto Sans SC', -apple-system, sans-serif;
+    --display: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(35,100,255,.12), transparent 26%),
+      radial-gradient(circle at 84% 12%, rgba(39,167,216,.14), transparent 24%),
+      linear-gradient(180deg, #f6fbff 0%, #edf4f8 38%, #e9f0f5 100%);
+    color: var(--text);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.28) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.28) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.28), transparent 55%);
+    opacity: .45;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 22px 32px 18px;
+    background: rgba(246,250,253,.72);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(40,73,98,.08);
+    box-shadow: 0 8px 30px rgba(19,36,53,.04);
+  }
+
+  .header-title {
+    font-family: var(--display);
+    font-size: clamp(24px, 2.4vw, 34px);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .header-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--text2);
+    letter-spacing: .04em;
+  }
+
+  .htag {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border-color: rgba(53,91,122,.16);
+    color: var(--text2);
+    background: rgba(255,255,255,.66);
+    backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  .htag:hover, .htag.active {
+    background: linear-gradient(135deg, #2364ff, #33a6dc);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(35,100,255,.2);
+  }
+
+  .main {
+    width: min(1500px, calc(100vw - 40px));
+    margin: 0 auto;
+    gap: 22px;
+    min-height: auto;
+    padding: 28px 0 40px;
+  }
+
+  .sidebar {
+    top: 104px;
+    width: 228px;
+    padding: 18px 0;
+    height: calc(100vh - 132px);
+    border: 1px solid rgba(40,73,98,.1);
+    border-radius: 22px;
+    background: rgba(255,255,255,.6);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 38px rgba(16,32,51,.06);
+  }
+
+  .nav-group { margin-bottom: 10px; }
+
+  .nav-group-label {
+    padding: 10px 20px 6px;
+    color: var(--text3);
+  }
+
+  .nav-item {
+    margin: 2px 10px;
+    padding: 10px 12px;
+    border-left: none;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: rgba(35,100,255,.07);
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: linear-gradient(135deg, rgba(35,100,255,.12), rgba(39,167,216,.12));
+    box-shadow: inset 0 0 0 1px rgba(35,100,255,.08);
+  }
+
+  .content {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .hero-shell {
+    position: relative;
+    margin-bottom: 28px;
+    padding: 28px;
+    border: 1px solid rgba(40,73,98,.1);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at top left, rgba(117,171,255,.16), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(97,222,199,.12), transparent 32%),
+      linear-gradient(180deg, rgba(255,255,255,.88), rgba(245,249,252,.98));
+    color: var(--text);
+    overflow: hidden;
+    box-shadow: 0 24px 56px rgba(16,32,51,.08);
+  }
+
+  .hero-shell::after {
+    content: '';
+    position: absolute;
+    inset: auto -20px -70px auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(117,171,255,.12), transparent 62%);
+    filter: blur(4px);
+  }
+
+  .hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    margin-bottom: 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.72);
+    border: 1px solid rgba(40,73,98,.1);
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  .hero-title {
+    max-width: none;
+    font-family: var(--display);
+    font-size: clamp(20px, 2.2vw, 32px);
+    line-height: 1.12;
+    letter-spacing: -.05em;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .hero-action {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+
+  .hero-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .hero-action.primary {
+    background: linear-gradient(135deg, #2364ff, #33a6dc);
+    color: #fff;
+    box-shadow: 0 14px 30px rgba(35,100,255,.16);
+  }
+
+  .hero-action.secondary {
+    background: rgba(255,255,255,.76);
+    color: var(--text);
+    border: 1px solid rgba(40,73,98,.1);
+  }
+
+  .hero-panel {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .signal-card,
+  .decision-card {
+    border-radius: 22px;
+    background: rgba(255,255,255,.74);
+    border: 1px solid rgba(40,73,98,.1);
+    backdrop-filter: blur(14px);
+  }
+
+  .signal-card {
+    padding: 16px;
+  }
+
+  .signal-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text3);
+  }
+
+  .signal-stack {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .signal-meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .signal-mini {
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(246,249,252,.9);
+    border: 1px solid rgba(40,73,98,.08);
+  }
+
+  .signal-mini b {
+    display: block;
+    margin-top: 6px;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .signal-mini span {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .decision-strip {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .decision-card {
+    padding: 14px 15px;
+  }
+
+  .decision-card h3 {
+    font-size: 12px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text3);
+  }
+
+  .decision-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .decision-tags span {
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text2);
+    background: rgba(246,249,252,.9);
+    border: 1px solid rgba(40,73,98,.08);
+  }
+
+  .hero-shelf {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .shelf-card {
+    padding: 14px 15px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.68);
+    border: 1px solid rgba(40,73,98,.08);
+    box-shadow: 0 10px 24px rgba(16,32,51,.04);
+  }
+
+  .shelf-card h4 {
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text3);
+  }
+
+  .shelf-card p {
+    margin-top: 9px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text2);
+  }
+
+  .overview {
+    padding: 22px;
+    border-radius: 28px;
+    background: rgba(255,255,255,.62);
+    border: 1px solid rgba(40,73,98,.1);
+    box-shadow: 0 18px 44px rgba(16,32,51,.06);
+    backdrop-filter: blur(16px);
+  }
+
+  .overview-head {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+
+  .overview-title {
+    font-family: var(--display);
+    font-size: clamp(17px, 1.5vw, 22px);
+    letter-spacing: -.04em;
+    line-height: 1.14;
+  }
+
+  .overview-copy {
+    max-width: 620px;
+    color: var(--text2);
+  }
+
+  #ecosystem-atlas {
+    padding: 18px;
+  }
+
+  #ecosystem-atlas .overview-head {
+    margin-bottom: 12px;
+  }
+
+  .atlas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .atlas-card {
+    appearance: none;
+    border: 1px solid rgba(40,73,98,.1);
+    border-radius: 22px;
+    padding: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.8), rgba(242,247,251,.96));
+    text-align: left;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow: 0 12px 28px rgba(16,32,51,.05);
+  }
+
+  .atlas-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(35,100,255,.24);
+    box-shadow: 0 22px 42px rgba(16,32,51,.1);
+  }
+
+  .atlas-card.frontend-map { background: linear-gradient(180deg, rgba(229,238,255,.92), rgba(248,250,255,.98)); }
+  .atlas-card.backend-map { background: linear-gradient(180deg, rgba(229,248,239,.94), rgba(248,252,249,.98)); }
+  .atlas-card.database-map { background: linear-gradient(180deg, rgba(255,245,225,.96), rgba(255,251,244,.98)); }
+  .atlas-card.agent-map { background: linear-gradient(180deg, rgba(252,231,241,.94), rgba(255,248,251,.98)); }
+  .atlas-card.infra-map { background: linear-gradient(180deg, rgba(232,247,252,.96), rgba(248,252,254,.98)); }
+
+  .atlas-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background: rgba(16,32,51,.06);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .atlas-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .atlas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .atlas-pill {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text2);
+    background: rgba(255,255,255,.66);
+    border: 1px solid rgba(40,73,98,.08);
+  }
+
+  .ecosystem-board {
+    display: grid;
+    max-width: 980px;
+    margin: 0 auto;
+    gap: 10px;
+  }
+
+  .eco-row {
+    display: grid;
+    gap: 10px;
+  }
+
+  .eco-row.two {
+    grid-template-columns: 1.4fr .8fr;
+  }
+
+  .eco-row.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .eco-row.two-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eco-block {
+    appearance: none;
+    width: 100%;
+    border: 1px solid rgba(40,73,98,.14);
+    border-radius: 18px;
+    padding: 11px 13px;
+    background: linear-gradient(180deg, rgba(252,254,255,.96), rgba(242,247,251,.98));
+    text-align: left;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow: 0 12px 28px rgba(16,32,51,.05);
+  }
+
+  .eco-block:hover {
+    transform: translateY(-2px);
+    border-color: rgba(35,100,255,.24);
+    box-shadow: 0 20px 38px rgba(16,32,51,.1);
+  }
+
+  .eco-block.hot {
+    background: linear-gradient(180deg, rgba(255,246,248,.98), rgba(250,242,255,.96));
+  }
+
+  .eco-block.cool {
+    background: linear-gradient(180deg, rgba(244,249,255,.98), rgba(242,247,251,.98));
+  }
+
+  .eco-block.green {
+    background: linear-gradient(180deg, rgba(243,251,247,.98), rgba(240,248,244,.98));
+  }
+
+  .eco-block.amber {
+    background: linear-gradient(180deg, rgba(255,249,239,.98), rgba(252,246,237,.98));
+  }
+
+  .eco-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  .eco-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: #ff5a4f;
+  }
+
+  .eco-heading {
+    font-size: 16px;
+    line-height: 1.12;
+    letter-spacing: -.03em;
+    color: var(--text);
+  }
+
+  .eco-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .eco-token {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(40,73,98,.08);
+    background: rgba(255,255,255,.72);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .mini-section {
+    margin-top: 14px;
+  }
+
+  .mini-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  .stage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stage-card {
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(40,73,98,.1);
+    background: rgba(247,250,252,.92);
+  }
+
+  .stage-card b {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .stage-card p {
+    font-size: 11px;
+    line-height: 1.62;
+    color: var(--text2);
+  }
+
+  .example-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .example-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.78);
+    border: 1px solid rgba(40,73,98,.1);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .section {
+    margin-bottom: 52px;
+    scroll-margin-top: 120px;
+  }
+
+  .section-label {
+    color: var(--text2);
+  }
+
+  .section-divider {
+    background: linear-gradient(90deg, rgba(40,73,98,.18), rgba(40,73,98,.03));
+  }
+
+  .card {
+    min-height: 100%;
+    padding: 16px 16px 14px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(244,248,252,.98));
+    box-shadow: 0 12px 28px rgba(16,32,51,.05);
+  }
+
+  .card:hover {
+    border-color: rgba(35,100,255,.24);
+    background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(244,248,252,1));
+    box-shadow: 0 20px 36px rgba(16,32,51,.1);
+    transform: translateY(-2px);
+  }
+
+  .card.active {
+    border-color: rgba(35,100,255,.44);
+    background: linear-gradient(180deg, rgba(234,242,255,.92), rgba(247,250,255,.98));
+    box-shadow: 0 18px 36px rgba(35,100,255,.12);
+  }
+
+  .card-name {
+    font-size: 15px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .badge {
+    border-radius: 999px;
+    padding: 3px 8px;
+  }
+
+  .panel {
+    background: rgba(255,255,255,.72);
+    border: 1px solid rgba(40,73,98,.14);
+    border-radius: 22px;
+    padding: 18px 20px;
+    box-shadow: 0 18px 36px rgba(16,32,51,.06);
+    backdrop-filter: blur(16px);
+  }
+
+  .panel-title {
+    font-size: 14px;
+  }
+
+  .pc-box,
+  .prob {
+    background: rgba(248,251,253,.82);
+    border-color: rgba(40,73,98,.1);
+    border-radius: 18px;
+  }
+
+  .tip {
+    border-radius: 18px;
+    background: rgba(233,241,255,.76);
+  }
+
+  .ctable th {
+    color: var(--text2);
+  }
+
+  .ctable tr:hover td {
+    background: rgba(35,100,255,.04);
+  }
+
+  .footer {
+    margin: 0 auto 24px;
+    width: min(1500px, calc(100vw - 40px));
+    border: 1px solid rgba(40,73,98,.08);
+    border-radius: 20px;
+    background: rgba(255,255,255,.56);
+    backdrop-filter: blur(16px);
+  }
+
+  @media (max-width: 1180px) {
+    .hero-grid,
+    .atlas-grid,
+    .decision-strip,
+    .hero-shelf {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-row.two,
+    .eco-row.three,
+    .eco-row.two-even,
+    .stage-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .main {
+      width: min(100vw - 24px, 100%);
+      padding-top: 20px;
+    }
+
+    .header {
+      padding: 18px 16px 14px;
+    }
+
+    .hero-shell,
+    .overview {
+      padding: 18px;
+      border-radius: 24px;
+    }
+
+    .hero-title {
+      max-width: none;
+      font-size: clamp(28px, 8vw, 38px);
+    }
+
+    .cards.col4,
+    .cards.col5,
+    .atlas-grid,
+    .decision-strip,
+    .hero-shelf,
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .signal-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .footer {
+      width: calc(100vw - 24px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">AI Agent Atlas 技术选型指南</div>
+    <div class="header-sub">scenarios · app stack · data · agent systems · serving · observability</div>
+  </div>
+  <div class="header-tags">
+    <button class="htag active" data-filter="all" onclick="filterAll(this)">全部</button>
+    <button class="htag" data-filter="scenario" onclick="filterSection('scenario', this)">业务场景</button>
+    <button class="htag" data-filter="frontend" onclick="filterSection('frontend', this)">前端</button>
+    <button class="htag" data-filter="backend" onclick="filterSection('backend', this)">后端</button>
+    <button class="htag" data-filter="database" onclick="filterSection('database', this)">数据库</button>
+    <button class="htag" data-filter="agent" onclick="filterSection('agent', this)">Agent 框架</button>
+    <button class="htag" data-filter="serving" onclick="filterSection('serving', this)">推理层</button>
+    <button class="htag" data-filter="multimodal" onclick="filterSection('multimodal', this)">多模态</button>
+    <button class="htag" data-filter="observability" onclick="filterSection('observability', this)">可观测性</button>
+    <button class="htag" data-filter="security" onclick="filterSection('security', this)">安全</button>
+    <button class="htag" data-filter="infra" onclick="filterSection('infra', this)">基础设施</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="nav-group">
+      <div class="nav-group-label">页面总览</div>
+      <a class="nav-item active" onclick="scrollToSection('page-hero')">首页总览</a>
+      <a class="nav-item" onclick="scrollToSection('stack-atlas')">技术地图</a>
+      <a class="nav-item" onclick="scrollToSection('ecosystem-atlas')">生态矩阵</a>
+      <a class="nav-item" onclick="focusSection('biz-scenarios', 'scenario')">行业场景 Playbooks</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">前端</div>
+      <a class="nav-item" onclick="scrollToSection('fe-lang')">语言 / 类型系统</a>
+      <a class="nav-item" onclick="scrollToSection('fe-fw')">框架</a>
+      <a class="nav-item" onclick="scrollToSection('fe-ui')">UI 组件库</a>
+      <a class="nav-item" onclick="scrollToSection('fe-state')">状态管理</a>
+      <a class="nav-item" onclick="scrollToSection('fe-build')">构建工具</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">后端</div>
+      <a class="nav-item" onclick="scrollToSection('be-lang')">语言 / 运行时</a>
+      <a class="nav-item" onclick="scrollToSection('be-fw')">框架</a>
+      <a class="nav-item" onclick="scrollToSection('be-queue')">任务队列</a>
+      <a class="nav-item" onclick="scrollToSection('be-api')">API 规范</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">数据库</div>
+      <a class="nav-item" onclick="scrollToSection('db-rdb')">关系型</a>
+      <a class="nav-item" onclick="scrollToSection('db-cache')">缓存 / 消息</a>
+      <a class="nav-item" onclick="scrollToSection('db-vector')">向量 / 分析</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Agent 框架</div>
+      <a class="nav-item" onclick="scrollToSection('ag-landscape')">生态参考 / Vertical</a>
+      <a class="nav-item" onclick="scrollToSection('ag-hosting')">Hosting / Serving</a>
+      <a class="nav-item" onclick="scrollToSection('ag-memory')">Memory</a>
+      <a class="nav-item" onclick="scrollToSection('ag-tools')">Tool Libraries</a>
+      <a class="nav-item" onclick="scrollToSection('ag-sandbox')">Sandboxes</a>
+      <a class="nav-item" onclick="scrollToSection('ag-fw')">编排框架</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">模型服务</div>
+      <a class="nav-item" onclick="scrollToSection('srv-runtime')">推理运行时</a>
+      <a class="nav-item" onclick="scrollToSection('srv-platform')">模型网关 / 服务编排</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">多模态</div>
+      <a class="nav-item" onclick="scrollToSection('mm-understand')">文档 / 语音 / 视觉理解</a>
+      <a class="nav-item" onclick="scrollToSection('mm-realtime')">实时音视频 / 交互</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">可观测性</div>
+      <a class="nav-item" onclick="scrollToSection('obs-agent')">Agent Trace / Eval</a>
+      <a class="nav-item" onclick="scrollToSection('obs-platform')">Metrics / Logs / Traces</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">安全</div>
+      <a class="nav-item" onclick="scrollToSection('sec-auth')">身份认证 / 授权</a>
+      <a class="nav-item" onclick="scrollToSection('sec-runtime')">秘钥 / 沙箱 / 护栏</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">基础设施</div>
+      <a class="nav-item" onclick="scrollToSection('inf-deploy')">部署 / 容器</a>
+      <a class="nav-item" onclick="scrollToSection('inf-issues')">常见问题</a>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="hero-shell" id="page-hero" data-persistent="true">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-kicker">Agent Stack Atlas</div>
+          <div class="hero-title">AI Agent 选型地图</div>
+          <div class="hero-actions">
+            <button class="hero-action primary" onclick="focusSection('fe-fw', 'frontend')">Web Agent</button>
+            <button class="hero-action secondary" onclick="focusSection('ag-fw', 'agent')">编排框架</button>
+            <button class="hero-action secondary" onclick="focusSection('inf-issues', 'infra')">生产问题</button>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="signal-card">
+            <div class="signal-label">默认推荐组合</div>
+            <div class="signal-stack">Next.js + FastAPI + PostgreSQL + Redis + LangGraph</div>
+          </div>
+          <div class="signal-grid">
+            <div class="signal-mini">
+              <div class="signal-label">01</div>
+              <b>先快</b>
+              <span>原型期先锁框架和数据流</span>
+            </div>
+            <div class="signal-mini">
+              <div class="signal-label">02</div>
+              <b>再稳</b>
+              <span>进入生产后补队列、限流、观测</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-strip">
+        <div class="decision-card">
+          <h3>Web Agent</h3>
+          <div class="decision-tags">
+            <span>Next.js</span>
+            <span>FastAPI</span>
+            <span>PostgreSQL</span>
+          </div>
+        </div>
+        <div class="decision-card">
+          <h3>多 Agent 编排</h3>
+          <div class="decision-tags">
+            <span>LangGraph</span>
+            <span>AutoGen</span>
+            <span>Temporal</span>
+          </div>
+        </div>
+        <div class="decision-card">
+          <h3>高并发生产</h3>
+          <div class="decision-tags">
+            <span>Rate Limit</span>
+            <span>Queue</span>
+            <span>Observability</span>
+          </div>
+        </div>
+        <div class="decision-card">
+          <h3>演进路径</h3>
+          <div class="decision-tags">
+            <span>Cache</span>
+            <span>RAG</span>
+            <span>Deploy</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-shelf">
+        <div class="shelf-card">
+          <h4>App Stack</h4>
+          <p>Next.js、FastAPI、PostgreSQL、Redis 仍然是最稳的主干组合。</p>
+        </div>
+        <div class="shelf-card">
+          <h4>Agent Systems</h4>
+          <p>框架、记忆、工具接入、沙箱和可观测性需要一起设计。</p>
+        </div>
+        <div class="shelf-card">
+          <h4>Serving</h4>
+          <p>云端模型、自托管推理和多模型网关要分层看，不要混在一层。</p>
+        </div>
+        <div class="shelf-card">
+          <h4>Playbooks</h4>
+          <p>场景优先于模型，内容、电商、出行、酒旅的落点完全不同。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section overview" id="stack-atlas" data-persistent="true">
+      <div class="overview-head">
+        <div>
+          <div class="section-head" style="margin-bottom:10px">
+            <div class="section-dot" style="background:#2364ff"></div>
+            <div class="section-label">技术地图 / Decision Atlas</div>
+            <div class="section-divider"></div>
+          </div>
+          <div class="overview-title">全局索引</div>
+        </div>
+      </div>
+
+      <div class="atlas-grid">
+        <button class="atlas-card frontend-map" onclick="focusSection('fe-lang', 'frontend')">
+          <span class="atlas-index">01</span>
+          <h3>前端</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">Next.js</span>
+            <span class="atlas-pill">shadcn/ui</span>
+            <span class="atlas-pill">TanStack Query</span>
+          </div>
+        </button>
+
+        <button class="atlas-card backend-map" onclick="focusSection('be-lang', 'backend')">
+          <span class="atlas-index">02</span>
+          <h3>后端</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">FastAPI</span>
+            <span class="atlas-pill">Hono</span>
+            <span class="atlas-pill">BullMQ</span>
+          </div>
+        </button>
+
+        <button class="atlas-card database-map" onclick="focusSection('db-rdb', 'database')">
+          <span class="atlas-index">03</span>
+          <h3>数据库</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">PostgreSQL</span>
+            <span class="atlas-pill">Redis</span>
+            <span class="atlas-pill">Vector DB</span>
+          </div>
+        </button>
+
+        <button class="atlas-card agent-map" onclick="focusSection('ag-fw', 'agent')">
+          <span class="atlas-index">04</span>
+          <h3>Agent 框架</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">LangGraph</span>
+            <span class="atlas-pill">AutoGen</span>
+            <span class="atlas-pill">Langfuse</span>
+          </div>
+        </button>
+
+        <button class="atlas-card infra-map" onclick="focusSection('inf-deploy', 'infra')">
+          <span class="atlas-index">05</span>
+          <h3>基础设施</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">Docker</span>
+            <span class="atlas-pill">Kubernetes</span>
+            <span class="atlas-pill">API Gateway</span>
+          </div>
+        </button>
+
+        <button class="atlas-card" onclick="focusSection('srv-runtime', 'serving')">
+          <span class="atlas-index">06</span>
+          <h3>模型服务 / 推理层</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">vLLM</span>
+            <span class="atlas-pill">LiteLLM</span>
+            <span class="atlas-pill">KServe</span>
+          </div>
+        </button>
+
+        <button class="atlas-card" onclick="focusSection('mm-understand', 'multimodal')">
+          <span class="atlas-index">07</span>
+          <h3>多模态</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">WhisperX</span>
+            <span class="atlas-pill">MinerU</span>
+            <span class="atlas-pill">Realtime API</span>
+          </div>
+        </button>
+
+        <button class="atlas-card" onclick="focusSection('obs-agent', 'observability')">
+          <span class="atlas-index">08</span>
+          <h3>可观测性</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">Langfuse</span>
+            <span class="atlas-pill">OpenTelemetry</span>
+            <span class="atlas-pill">Grafana</span>
+          </div>
+        </button>
+
+        <button class="atlas-card" onclick="focusSection('sec-auth', 'security')">
+          <span class="atlas-index">09</span>
+          <h3>安全</h3>
+          <div class="atlas-list">
+            <span class="atlas-pill">Auth.js</span>
+            <span class="atlas-pill">Vault</span>
+            <span class="atlas-pill">E2B</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="section overview" id="ecosystem-atlas" data-persistent="true">
+      <div class="overview-head">
+        <div>
+          <div class="section-head" style="margin-bottom:10px">
+            <div class="section-dot" style="background:#ef6f9b"></div>
+            <div class="section-label">AI Agents Stack / Ecosystem Map</div>
+            <div class="section-divider"></div>
+          </div>
+          <div class="overview-title">Agent 生态层</div>
+        </div>
+      </div>
+
+      <div class="ecosystem-board">
+        <div class="eco-row">
+          <button class="eco-block hot" onclick="focusSection('ag-landscape', 'agent')">
+            <div class="eco-label">Vertical Agents</div>
+            <div class="eco-heading">先看已经被产品化的垂类 Agent</div>
+            <div class="eco-items">
+              <span class="eco-token">Decagon</span>
+              <span class="eco-token">Sierra</span>
+              <span class="eco-token">Harvey</span>
+              <span class="eco-token">Lindy</span>
+              <span class="eco-token">11x</span>
+              <span class="eco-token">Factory</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="eco-row two">
+          <button class="eco-block cool" onclick="focusSection('ag-hosting', 'agent')">
+            <div class="eco-label">Hosting &amp; Serving</div>
+            <div class="eco-items">
+              <span class="eco-token">Letta</span>
+              <span class="eco-token">LangGraph Platform</span>
+              <span class="eco-token">Assistants API</span>
+              <span class="eco-token">Bedrock Agents</span>
+              <span class="eco-token">LiveKit Agents</span>
+            </div>
+          </button>
+
+          <button class="eco-block" onclick="focusSection('obs-agent', 'observability')">
+            <div class="eco-label">Observability</div>
+            <div class="eco-items">
+              <span class="eco-token">LangSmith</span>
+              <span class="eco-token">Phoenix</span>
+              <span class="eco-token">Langfuse</span>
+              <span class="eco-token">Braintrust</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="eco-row">
+          <button class="eco-block cool" onclick="focusSection('ag-fw', 'agent')">
+            <div class="eco-label">Agent Frameworks</div>
+            <div class="eco-items">
+              <span class="eco-token">LangGraph</span>
+              <span class="eco-token">AutoGen</span>
+              <span class="eco-token">LlamaIndex</span>
+              <span class="eco-token">CrewAI</span>
+              <span class="eco-token">PydanticAI</span>
+              <span class="eco-token">Semantic Kernel</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="eco-row three">
+          <button class="eco-block green" onclick="focusSection('ag-memory', 'agent')">
+            <div class="eco-label">Memory</div>
+            <div class="eco-items">
+              <span class="eco-token">MemGPT</span>
+              <span class="eco-token">Zep</span>
+              <span class="eco-token">LangMem</span>
+              <span class="eco-token">mem0</span>
+            </div>
+          </button>
+
+          <button class="eco-block" onclick="focusSection('ag-tools', 'agent')">
+            <div class="eco-label">Tool Libraries</div>
+            <div class="eco-items">
+              <span class="eco-token">Composio</span>
+              <span class="eco-token">Browserbase</span>
+              <span class="eco-token">Exa</span>
+              <span class="eco-token">Firecrawl</span>
+            </div>
+          </button>
+
+          <button class="eco-block" onclick="focusSection('ag-sandbox', 'agent')">
+            <div class="eco-label">Sandboxes</div>
+            <div class="eco-items">
+              <span class="eco-token">E2B</span>
+              <span class="eco-token">Modal</span>
+              <span class="eco-token">Firecracker</span>
+              <span class="eco-token">gVisor</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="eco-row two-even">
+          <button class="eco-block amber" onclick="focusSection('srv-runtime', 'serving')">
+            <div class="eco-label">Model Serving</div>
+            <div class="eco-items">
+              <span class="eco-token">vLLM</span>
+              <span class="eco-token">Ollama</span>
+              <span class="eco-token">SGLang</span>
+              <span class="eco-token">LiteLLM</span>
+              <span class="eco-token">BentoML</span>
+            </div>
+          </button>
+
+          <button class="eco-block green" onclick="focusSection('db-vector', 'database')">
+            <div class="eco-label">Storage</div>
+            <div class="eco-items">
+              <span class="eco-token">Qdrant</span>
+              <span class="eco-token">Pinecone</span>
+              <span class="eco-token">Weaviate</span>
+              <span class="eco-token">Neon</span>
+              <span class="eco-token">Supabase</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section scenario" id="biz-scenarios">
+      <div class="section-head">
+        <div class="section-dot" style="background:#2364ff"></div>
+        <div class="section-label">业务场景 Playbooks</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col3">
+        <div class="card" onclick="toggle(this,'sc-content')">
+          <div class="card-name">内容创作 <span class="badge b-green">多模态 + 工作流</span></div>
+          <div class="card-desc">选题、脚本、素材理解、批量生成、审核发布的一体化创作链路</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sc-local')">
+          <div class="card-name">生活服务 <span class="badge b-blue">语音 + 调度</span></div>
+          <div class="card-desc">到家服务、预约、客服、工单分发，重点是实时性和系统集成</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sc-commerce')">
+          <div class="card-name">电商 <span class="badge b-green">RAG + 工具调用</span></div>
+          <div class="card-desc">导购、客服、售后、商家运营，重点是商品知识和订单系统打通</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'sc-supply')">
+          <div class="card-name">供应链与物流 <span class="badge b-purple">多步骤编排</span></div>
+          <div class="card-desc">异常处理、ETA、单证理解、任务协同，重点是流程可追踪</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sc-mobility')">
+          <div class="card-name">打车 / 出行 <span class="badge b-amber">低延迟事件流</span></div>
+          <div class="card-desc">实时派单、语音交互、位置服务、客服风控，系统实时性要求极高</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sc-travel')">
+          <div class="card-name">酒旅 <span class="badge b-blue">搜索 + 行程编排</span></div>
+          <div class="card-desc">行程规划、搜索比价、政策问答、售后支持，重点是复杂规则与多渠道</div>
+        </div>
+      </div>
+
+      <div id="sc-content" class="panel">
+        <div class="panel-title">内容创作 —— 从灵感生成到批量发布的创作流水线</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>短视频脚本生成、图文内容生产、素材理解、视频字幕摘要、批量改写</div>
+          <div class="kv"><b>关键能力：</b>多模态理解、长文档 / 视频素材处理、工作流编排、审校和版本管理</div>
+          <div class="kv"><b>推荐组合：</b>Next.js + FastAPI + LangGraph + PostgreSQL + Qdrant / pgvector + WhisperX + GPT-5.4 / Qwen2.5-VL / GLM-4.5V</div>
+          <div class="kv"><b>为什么：</b>创作类产品更像“多模态 workflow”，不是单次问答；需要把脚本、素材、审校串起来</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做脚本生成、字幕摘要、素材标签这类单点能力。推荐 `Next.js + FastAPI + GPT-5.4-mini + WhisperX + PostgreSQL`。</p></div>
+            <div class="stage-card"><b>成长期</b><p>补工作流编排、素材库检索、审校台和版本管理。引入 `LangGraph + pgvector / Qdrant + Langfuse`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>做批量任务队列、视频理解 pipeline、成本路由和内容安全审核。补 `Temporal / BullMQ + LiteLLM + ClickHouse`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">Runway · 视频生成工作台</span>
+            <span class="example-chip">Jasper · 内容营销写作</span>
+            <span class="example-chip">Canva Magic Studio · 创意工作流</span>
+            <span class="example-chip">CapCut / 剪映 · 素材理解与字幕</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>先把流程拆成“素材理解 → 选题 / 大纲 → 生成 → 审校 → 发布”五段，每段单独可观测。视频 / 音频素材要先经过 ASR 和结构化切块，别直接把长视频喂给模型。</div>
+      </div>
+
+      <div id="sc-local" class="panel">
+        <div class="panel-title">生活服务 —— 到家服务、预约和客服协同</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>家政 / 到修 / 医美 / 门店服务预约，智能客服、工单创建、日程协调、电话回访</div>
+          <div class="kv"><b>关键能力：</b>语音交互、CRM / 日历 / 工单系统集成、地理位置和时段调度</div>
+          <div class="kv"><b>推荐组合：</b>Next.js / 小程序前端 + FastAPI / Hono + Auth.js / Clerk + Realtime API + Composio + PostgreSQL + Redis</div>
+          <div class="kv"><b>为什么：</b>生活服务的核心不在“模型多聪明”，而在“能不能把预约和履约流程接顺”</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做客服问答、预约意图识别和 FAQ 助手。用 `小程序 / Web + FastAPI + PostgreSQL + Redis` 就够。</p></div>
+            <div class="stage-card"><b>成长期</b><p>接 CRM、工单、门店排班、语音客服。补 `Realtime API / LiveKit + Composio + Langfuse`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>做多城市、多门店调度、智能外呼、质检和运营看板。补 `Kafka + ClickHouse + OTel + Grafana`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">美团 / 饿了么 · 本地生活履约</span>
+            <span class="example-chip">京东到家 · 到家服务协调</span>
+            <span class="example-chip">Sierra / Decagon · 客服自动化</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>这一类最适合先从客服和预约助理切入。优先接通日历、工单、门店系统，语音链路一定要做好中断、转人工和审计留痕。</div>
+      </div>
+
+      <div id="sc-commerce" class="panel">
+        <div class="panel-title">电商 —— 导购、客服、售后和商家运营</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>商品问答、智能导购、售后处理、退款政策解答、商家数据助手</div>
+          <div class="kv"><b>关键能力：</b>商品知识 RAG、订单和库存系统工具调用、用户画像、推荐与风控</div>
+          <div class="kv"><b>推荐组合：</b>Next.js + FastAPI + LangGraph / PydanticAI + PostgreSQL + Redis + Qdrant + Composio / 内部 OMS 工具层 + Langfuse</div>
+          <div class="kv"><b>为什么：</b>电商 Agent 需要同时理解结构化商品数据和半结构化政策文档，还要安全调用订单工具</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做商品问答和售后政策助手。用 `Next.js + FastAPI + pgvector / Qdrant + Langfuse`。</p></div>
+            <div class="stage-card"><b>成长期</b><p>补订单工具调用、售后工单、商家运营 Copilot。加入 `LangGraph / PydanticAI + Redis + 工具权限层`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>促销峰值下做缓存、模型路由、风控和观测。补 `LiteLLM + Kafka + ClickHouse + OTel`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">淘宝 / 天猫 · 导购与客服</span>
+            <span class="example-chip">Shopify Sidekick · 商家运营 Copilot</span>
+            <span class="example-chip">Amazon Rufus · 商品问答助手</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>把能力拆成三条线：商品知识问答、订单类工具调用、售后规则判断。促销期要单独做限流和缓存，别让所有问题都直接打模型。</div>
+      </div>
+
+      <div id="sc-supply" class="panel">
+        <div class="panel-title">供应链与物流 —— 异常处理和流程协同型 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>异常物流单处理、ETA 解释、仓配协同、采购 / 运输单证理解、承运商沟通</div>
+          <div class="kv"><b>关键能力：</b>多步骤 workflow、文档解析、事件流处理、权限与审计、跨系统协同</div>
+          <div class="kv"><b>推荐组合：</b>FastAPI + LangGraph + Temporal / BullMQ + PostgreSQL + Redis + Kafka / Redis Streams + MinerU + ClickHouse + OpenTelemetry</div>
+          <div class="kv"><b>为什么：</b>供应链问题不是单轮聊天，而是“多系统、多角色、多状态”的长链路流程问题</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做异常单解释、ETA 问答和单证识别。推荐 `FastAPI + PostgreSQL + Redis + MinerU`。</p></div>
+            <div class="stage-card"><b>成长期</b><p>补跨系统 workflow、队列、消息流和审计。加入 `LangGraph + Temporal / BullMQ + Kafka`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>做全链路运营看板、承运商协同和事件回放。补 `ClickHouse + OTel + Grafana + 策略权限层`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">Flexport · 物流协同平台</span>
+            <span class="example-chip">FourKites · 物流可视化</span>
+            <span class="example-chip">京东物流 / 顺丰科技 · 异常与调度系统</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>优先做“异常单解释 + 下一步建议”，再做自动执行。文档类场景要先把提单、发票、签收单等结构化，不然下游决策会很脆弱。</div>
+      </div>
+
+      <div id="sc-mobility" class="panel">
+        <div class="panel-title">打车 / 出行 —— 低延迟事件流和实时语音优先</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>司机 / 乘客客服、派单解释、路线与费用问答、语音车载助手、安全事件处理</div>
+          <div class="kv"><b>关键能力：</b>低延迟实时链路、位置服务、事件流、语音中断、人工接管</div>
+          <div class="kv"><b>推荐组合：</b>React / Next.js + Go 接入层 + FastAPI AI 服务层 + Redis + Kafka + Realtime API / LiveKit + OpenTelemetry + Grafana</div>
+          <div class="kv"><b>为什么：</b>打车类业务对延迟、稳定性和状态一致性极敏感，AI 服务不能直接顶在所有核心链路上</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做客服解释、订单状态问答、司机助手。推荐 `Go 接入层 + FastAPI AI 服务 + Redis`。</p></div>
+            <div class="stage-card"><b>成长期</b><p>补实时语音、位置事件流、风险策略和人工接管。加入 `Realtime API / LiveKit + Kafka + OTel`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>把成本、延迟、地区差异和多模型路由纳入平台治理。补 `LiteLLM + Grafana + ClickHouse`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">Uber / 滴滴 · 实时出行调度</span>
+            <span class="example-chip">Waymo / Cruise · 车载语音交互</span>
+            <span class="example-chip">Sierra · 客服自动化</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>AI 最适合先落在“解释、客服、辅助决策”，不适合一开始就接管实时派单核心。位置和价格相关问题要强约束，不能让模型自由发挥。</div>
+      </div>
+
+      <div id="sc-travel" class="panel">
+        <div class="panel-title">酒旅 —— 搜索、组合推荐和复杂规则问答</div>
+        <div class="kv-grid">
+          <div class="kv"><b>典型场景：</b>行程规划、机酒套餐推荐、签改退规则问答、售后客服、目的地内容生成</div>
+          <div class="kv"><b>关键能力：</b>搜索比价、规则 / 政策 RAG、多语言、工具编排、行程状态管理</div>
+          <div class="kv"><b>推荐组合：</b>Next.js + FastAPI + LangGraph + PostgreSQL + Qdrant + LiteLLM + Exa / 搜索接口 + 多模态文档理解 + Langfuse</div>
+          <div class="kv"><b>为什么：</b>酒旅的难点是规则复杂、渠道多、价格变化快，AI 需要和搜索 / 预订系统紧耦合</div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">阶段推荐</div>
+          <div class="stage-grid">
+            <div class="stage-card"><b>0-1</b><p>先做规则问答、目的地推荐和简单行程建议。推荐 `Next.js + FastAPI + Qdrant + 搜索接口`。</p></div>
+            <div class="stage-card"><b>成长期</b><p>补多渠道搜索、行程状态和售后工具调用。加入 `LangGraph + LiteLLM + Langfuse`。</p></div>
+            <div class="stage-card"><b>大规模</b><p>做实时价格路由、国际化、多语言客服和成本治理。补 `多模型路由 + 事件流 + ClickHouse`。</p></div>
+          </div>
+        </div>
+        <div class="mini-section">
+          <div class="mini-title">代表产品 / 案例</div>
+          <div class="example-row">
+            <span class="example-chip">Booking / Expedia · 搜索与政策问答</span>
+            <span class="example-chip">携程 / 飞猪 · 行程与售后</span>
+            <span class="example-chip">Perplexity Comet 风格行程规划助手</span>
+          </div>
+        </div>
+        <div class="tip"><b>落地建议：</b>把“内容推荐”和“交易执行”分成两层。推荐层可以更开放，交易层必须严格工具化、可回滚、可审计。</div>
+      </div>
+
+      <div class="mini-section" style="margin-top:18px">
+        <div class="panel show" style="display:block">
+          <div class="panel-title">场景 × 技术栈推荐矩阵</div>
+          <div class="ctable-wrap">
+            <table class="ctable">
+              <thead>
+                <tr>
+                  <th>场景</th>
+                  <th>核心交互</th>
+                  <th>后端 / 编排</th>
+                  <th>数据层</th>
+                  <th>多模态 / 实时</th>
+                  <th>观测 / 安全</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="name">内容创作</td>
+                  <td>Next.js + 工作台式前端</td>
+                  <td>FastAPI + LangGraph</td>
+                  <td>PostgreSQL + Qdrant / pgvector</td>
+                  <td>WhisperX + GPT-5.4 / Qwen2.5-VL / GLM-4.5V</td>
+                  <td>Langfuse + 内容安全审核</td>
+                </tr>
+                <tr>
+                  <td class="name">生活服务</td>
+                  <td>小程序 / Web + 语音客服</td>
+                  <td>FastAPI / Hono + 工具调用</td>
+                  <td>PostgreSQL + Redis</td>
+                  <td>Realtime API / LiveKit</td>
+                  <td>Auth.js / Clerk + 审计留痕</td>
+                </tr>
+                <tr>
+                  <td class="name">电商</td>
+                  <td>导购 / 客服 / 商家后台</td>
+                  <td>FastAPI + LangGraph / PydanticAI</td>
+                  <td>PostgreSQL + Redis + Qdrant</td>
+                  <td>商品图像理解按需启用</td>
+                  <td>Langfuse + 工具权限 + 风控</td>
+                </tr>
+                <tr>
+                  <td class="name">供应链与物流</td>
+                  <td>异常协同台 / 工单流</td>
+                  <td>FastAPI + Temporal / BullMQ + LangGraph</td>
+                  <td>PostgreSQL + Redis + Kafka + ClickHouse</td>
+                  <td>MinerU / 文档解析</td>
+                  <td>OTel + Grafana + 权限审计</td>
+                </tr>
+                <tr>
+                  <td class="name">打车 / 出行</td>
+                  <td>实时客服 / 车载助手</td>
+                  <td>Go 接入层 + FastAPI AI 服务</td>
+                  <td>Redis + Kafka + PostgreSQL</td>
+                  <td>Realtime API / LiveKit</td>
+                  <td>OTel + Grafana + 严格策略约束</td>
+                </tr>
+                <tr>
+                  <td class="name">酒旅</td>
+                  <td>搜索 / 行程规划 / 售后</td>
+                  <td>FastAPI + LangGraph + 搜索聚合</td>
+                  <td>PostgreSQL + Qdrant</td>
+                  <td>多模态文档理解按需接入</td>
+                  <td>Langfuse + 多渠道策略治理</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ FRONTEND ══════════════ -->
+
+    <div class="section frontend" id="fe-lang">
+      <div class="section-head">
+        <div class="section-dot" style="background:#7c6cfc"></div>
+        <div class="section-label">前端 — 语言 / 类型系统</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col3">
+        <div class="card" onclick="toggle(this,'ts')">
+          <div class="card-name">TypeScript <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">JS 超集，静态类型，大型团队首选；tool schema 从类型自动生成</div>
+        </div>
+        <div class="card" onclick="toggle(this,'js')">
+          <div class="card-name">JavaScript <span class="badge b-gray">原型快</span></div>
+          <div class="card-desc">无类型约束，小团队 / 原型阶段可用，JSDoc 补基础提示</div>
+        </div>
+        <div class="card" onclick="toggle(this,'dart')">
+          <div class="card-name">Dart / Flutter <span class="badge b-gray">跨端</span></div>
+          <div class="card-desc">移动 + 桌面 Agent 客户端，一套代码 iOS / Android / 桌面</div>
+        </div>
+      </div>
+      <div id="ts" class="panel">
+        <div class="panel-title">TypeScript —— Agent 开发为什么值得</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>LLM tool_use schema 可从 Zod 类型自动生成，不再手写两份</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>流式 SSE 数据有类型推导，防止字段拼错</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>大型 Agent 工程重构安全，IDE 提示完备</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Vercel AI SDK、LangChain.js、Mastra 原生 TS</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>前后端 monorepo 可共享同一份类型定义</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>配置成本（tsconfig、构建工具链）</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>类型复杂时调试门槛高于纯 JS</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>运行时仍是 JS，类型不等于运行时校验（需配 Zod）</div>
+          </div>
+        </div>
+        <div class="tip"><b>最佳实践：</b> 用 Zod 作为唯一真相来源 → <code>z.infer&lt;typeof Schema&gt;</code> 得到 TS 类型，<code>zodToJsonSchema()</code> 直接生成 LLM 工具描述，前后端零重复定义。</div>
+      </div>
+      <div id="js" class="panel">
+        <div class="panel-title">JavaScript —— 适用边界</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>小规模原型、单人项目、脚本级 Agent 集成</div>
+          <div class="kv"><b>不适合：</b>多人协作、长期维护、复杂工具调用编排</div>
+          <div class="kv"><b>折中方案：</b>JSDoc + <code>// @ts-check</code> 获得基础 IDE 提示</div>
+          <div class="kv"><b>迁移：</b>项目成长后迁移 TS 成本高，建议早用</div>
+        </div>
+      </div>
+      <div id="dart" class="panel">
+        <div class="panel-title">Dart / Flutter —— Agent 移动端</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>需要移动端 Agent 对话界面，跨平台一套代码</div>
+          <div class="kv"><b>缺点：</b>LLM 生态极少，SSE 需自行封装 http 包</div>
+          <div class="kv"><b>替代：</b>React Native + Expo 在 Agent App 场景生态更好</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section frontend" id="fe-fw">
+      <div class="section-head">
+        <div class="section-dot" style="background:#7c6cfc"></div>
+        <div class="section-label">前端 — 框架</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'react')">
+          <div class="card-name">React <span class="badge b-green">生态最大</span></div>
+          <div class="card-desc">组件模型；配合 Next.js 做 SSR + 流式 RSC</div>
+        </div>
+        <div class="card" onclick="toggle(this,'next')">
+          <div class="card-name">Next.js <span class="badge b-green">Agent 首选</span></div>
+          <div class="card-desc">App Router + Server Actions，流式输出原生支持</div>
+        </div>
+        <div class="card" onclick="toggle(this,'nuxt')">
+          <div class="card-name">Nuxt 3 <span class="badge b-blue">Vue 系</span></div>
+          <div class="card-desc">国内团队，中后台管理页</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sveltekit')">
+          <div class="card-name">SvelteKit <span class="badge b-amber">轻量</span></div>
+          <div class="card-desc">编译时优化，无 VDOM，嵌入式场景</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'remix')">
+          <div class="card-name">Remix <span class="badge b-gray">Web 标准</span></div>
+          <div class="card-desc">Data loader，Defer 流式，渐进增强</div>
+        </div>
+        <div class="card" onclick="toggle(this,'rn')">
+          <div class="card-name">React Native <span class="badge b-blue">移动端</span></div>
+          <div class="card-desc">Expo，一套代码 iOS / Android，共享 TS 类型</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vite-spa')">
+          <div class="card-name">Vite + React SPA <span class="badge b-gray">纯前端</span></div>
+          <div class="card-desc">无 SSR，内嵌 Agent 工具、Chrome 插件</div>
+        </div>
+      </div>
+      <div id="react" class="panel">
+        <div class="panel-title">React —— Agent 前端核心地位</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>生态最大，绝大多数 AI SDK 优先支持 React（Vercel AI SDK useChat、useCompletion）</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Suspense + useTransition 天然处理 LLM 流式渲染的 loading 状态</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Server Components 可在服务端 pipe LLM 流，减少客户端 JS 体积</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>丰富的工具调用结果渲染生态（代码高亮、Markdown、图表）</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>单独用 React 需手动搭配 Vite/Next.js，配置项多</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>多余渲染问题在高频 token 更新时需用 useRef + flushSync 优化</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>Server Components 心智模型复杂，Server/Client 边界易混淆</div>
+          </div>
+        </div>
+        <div class="tip"><b>Agent 流式渲染最佳实践：</b> useChat（Vercel AI SDK）内置 token 追加逻辑，避免手动 setState 触发过多重渲染。工具调用结果用独立子组件渲染，memo 隔离。</div>
+      </div>
+      <div id="next" class="panel">
+        <div class="panel-title">Next.js App Router —— 流式 Agent 产品</div>
+        <div class="kv-grid">
+          <div class="kv"><b>Route Handler：</b>直接处理 SSE，无需额外 BFF 层</div>
+          <div class="kv"><b>Server Actions：</b>减少接口层 RTT，表单类 Agent 操作极简</div>
+          <div class="kv"><b>RSC streaming：</b>服务端直接 pipe LLM 输出到客户端</div>
+          <div class="kv"><b>AI SDK：</b>streamText / streamUI 开箱即用</div>
+          <div class="kv"><b>部署：</b>Vercel 零配置；自部署需 Node.js runtime</div>
+          <div class="kv"><b>缺点：</b>App Router 学习曲线陡峭</div>
+        </div>
+      </div>
+      <div id="nuxt" class="panel">
+        <div class="panel-title">Nuxt 3 —— 适用边界</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>Vue 3 Composition API + TS，国内社区活跃</div>
+          <div class="kv"><b>缺点：</b>AI SDK 生态薄，流式需自行封装</div>
+          <div class="kv"><b>适合：</b>已有 Vue 栈，Agent 管理后台 / 配置界面</div>
+          <div class="kv"><b>不适合：</b>需要深度 LLM 流集成的对话前端</div>
+        </div>
+      </div>
+      <div id="sveltekit" class="panel">
+        <div class="panel-title">SvelteKit —— 性能敏感嵌入场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>编译产物极小，无运行时 VDOM，响应极快</div>
+          <div class="kv"><b>流式：</b>内置 load 函数天然支持流式 fetch</div>
+          <div class="kv"><b>缺点：</b>LLM 工具链近乎空白，团队招聘困难</div>
+          <div class="kv"><b>定位：</b>性能敏感型嵌入页、非主流 Agent 产品</div>
+        </div>
+      </div>
+      <div id="remix" class="panel">
+        <div class="panel-title">Remix —— 内容型 Agent 产品</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>Defer API 流式数据，Loader/Action 清晰</div>
+          <div class="kv"><b>优点：</b>渐进增强，无 JS 也可降级使用</div>
+          <div class="kv"><b>缺点：</b>AI SDK 集成不如 Next.js 丰富</div>
+          <div class="kv"><b>适合：</b>内容型 + 表单型 Agent，非纯对话场景</div>
+        </div>
+      </div>
+      <div id="rn" class="panel">
+        <div class="panel-title">React Native + Expo —— 移动 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>与 React Web 共享 TS 类型，逻辑层代码复用</div>
+          <div class="kv"><b>Expo Router：</b>文件路由，接近 Next.js 体验</div>
+          <div class="kv"><b>流式：</b>fetch SSE 在 RN 支持较好，EventSource 需 polyfill</div>
+          <div class="kv"><b>离线：</b>配合 SQLite (expo-sqlite) 可做本地 Agent 缓存</div>
+        </div>
+      </div>
+      <div id="vite-spa" class="panel">
+        <div class="panel-title">Vite + React SPA —— 嵌入 / 插件场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>Chrome 扩展、Electron 嵌入、内嵌 Agent 侧边栏</div>
+          <div class="kv"><b>优点：</b>无 SSR 复杂度，构建产物可直接注入任意网页</div>
+          <div class="kv"><b>缺点：</b>SEO 差，首屏无 SSR 预渲染</div>
+          <div class="kv"><b>扩展：</b>WXT 框架简化 Chrome 扩展 + React + TS 配置</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section frontend" id="fe-ui">
+      <div class="section-head">
+        <div class="section-dot" style="background:#7c6cfc"></div>
+        <div class="section-label">前端 — UI 组件库</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'shadcn')">
+          <div class="card-name">shadcn/ui <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">复制到项目，完全可控，Tailwind + Radix</div>
+        </div>
+        <div class="card" onclick="toggle(this,'antd')">
+          <div class="card-name">Ant Design <span class="badge b-blue">国内主流</span></div>
+          <div class="card-desc">组件最全，管理后台场景成熟</div>
+        </div>
+        <div class="card" onclick="toggle(this,'mui')">
+          <div class="card-name">MUI <span class="badge b-gray">Material</span></div>
+          <div class="card-desc">Google Material Design，国际化产品</div>
+        </div>
+        <div class="card" onclick="toggle(this,'tailwind')">
+          <div class="card-name">Tailwind CSS <span class="badge b-purple">工具类</span></div>
+          <div class="card-desc">原子类，与任意组件库配合，高度自定义</div>
+        </div>
+      </div>
+      <div id="shadcn" class="panel">
+        <div class="panel-title">shadcn/ui —— Agent 产品 UI 层首选</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>代码复制到项目，不是 npm 依赖，完全可控</div>
+          <div class="kv"><b>底层：</b>Radix UI 无障碍原语 + Tailwind CSS 样式</div>
+          <div class="kv"><b>Agent 场景：</b>chat 气泡、工具调用卡片、流式文本组件均有现成实现</div>
+          <div class="kv"><b>主题：</b>CSS 变量驱动，暗色模式零配置，适合 AI 产品深色 UI</div>
+        </div>
+      </div>
+      <div id="antd" class="panel">
+        <div class="panel-title">Ant Design —— 管理后台场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>Table、Form、Tree 等复杂组件开箱即用</div>
+          <div class="kv"><b>Ant Design X：</b>专为 AI 对话场景的扩展组件库（Bubble、Sender）</div>
+          <div class="kv"><b>缺点：</b>包体积大，深度定制成本高，设计感偏企业</div>
+          <div class="kv"><b>适合：</b>Agent 平台管理端、运营控制台</div>
+        </div>
+      </div>
+      <div id="mui" class="panel">
+        <div class="panel-title">MUI —— 国际化产品</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>设计规范统一，国际团队熟悉</div>
+          <div class="kv"><b>缺点：</b>定制成本高，样式覆盖机制复杂（sx prop / emotion）</div>
+          <div class="kv"><b>替代：</b>国内 Agent 产品多选 Ant Design 或 shadcn/ui</div>
+        </div>
+      </div>
+      <div id="tailwind" class="panel">
+        <div class="panel-title">Tailwind CSS —— 定制化 UI 基础</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>无设计稿直接出高还原度页面，设计系统底层</div>
+          <div class="kv"><b>优点：</b>原子类减少 CSS 体积，JIT 按需生成</div>
+          <div class="kv"><b>配合：</b>shadcn/ui、Headless UI、Radix 都以 Tailwind 为样式层</div>
+          <div class="kv"><b>注意：</b>单独用 Tailwind 构建复杂组件（Modal、Select）需配合 Headless</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section frontend" id="fe-state">
+      <div class="section-head">
+        <div class="section-dot" style="background:#7c6cfc"></div>
+        <div class="section-label">前端 — 状态管理 / 数据获取</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'zustand')">
+          <div class="card-name">Zustand <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">轻量，Agent 会话 / UI 状态</div>
+        </div>
+        <div class="card" onclick="toggle(this,'jotai')">
+          <div class="card-name">Jotai <span class="badge b-blue">原子化</span></div>
+          <div class="card-desc">流数据细粒度更新，Suspense 集成</div>
+        </div>
+        <div class="card" onclick="toggle(this,'tanstack')">
+          <div class="card-name">TanStack Query <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">服务端异步状态缓存层</div>
+        </div>
+        <div class="card" onclick="toggle(this,'redux')">
+          <div class="card-name">Redux Toolkit <span class="badge b-gray">企业级</span></div>
+          <div class="card-desc">大型团队 / 复杂状态机，DevTools</div>
+        </div>
+      </div>
+      <div id="zustand" class="panel">
+        <div class="panel-title">Zustand —— Agent 会话状态首选</div>
+        <div class="kv-grid">
+          <div class="kv"><b>用途：</b>存储 messages[]、currentTask、toolResults、UI 交互状态</div>
+          <div class="kv"><b>优点：</b>零 boilerplate，TS 泛型友好，支持 immer 中间件</div>
+          <div class="kv"><b>持久化：</b>persist 中间件 + localStorage 做会话恢复</div>
+          <div class="kv"><b>搭配：</b>TanStack Query 管服务端状态，Zustand 管 UI 状态，职责分离</div>
+        </div>
+      </div>
+      <div id="jotai" class="panel">
+        <div class="panel-title">Jotai —— 流式场景细粒度更新</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>atom 粒度极细，token 逐字渲染只重渲染变化 atom</div>
+          <div class="kv"><b>Suspense：</b>异步 atom 天然集成，loading 状态声明式</div>
+          <div class="kv"><b>缺点：</b>大量 atom 调试难，依赖关系不如 Zustand 直观</div>
+        </div>
+      </div>
+      <div id="tanstack" class="panel">
+        <div class="panel-title">TanStack Query —— 服务端数据层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>作用：</b>管理 Agent 历史记录、知识库搜索等服务端异步数据</div>
+          <div class="kv"><b>特性：</b>自动缓存、失效、重试；配合 Agent 任务轮询极省代码</div>
+          <div class="kv"><b>流式：</b>配合 fetchEventSource 可管理 SSE 流状态</div>
+          <div class="kv"><b>TS：</b>完整泛型推导，接口 schema 类型穿透到组件</div>
+        </div>
+      </div>
+      <div id="redux" class="panel">
+        <div class="panel-title">Redux Toolkit —— 大型团队</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>100+ 人团队，强规范需求，复杂 Agent 工作流状态机</div>
+          <div class="kv"><b>DevTools：</b>时间旅行调试，可回溯 Agent 执行每一步</div>
+          <div class="kv"><b>缺点：</b>boilerplate 多，原型开发体验远不如 Zustand</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section frontend" id="fe-build">
+      <div class="section-head">
+        <div class="section-dot" style="background:#7c6cfc"></div>
+        <div class="section-label">前端 — 构建工具</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'vite')">
+          <div class="card-name">Vite <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">ESM 原生，HMR 极快，配置简洁</div>
+        </div>
+        <div class="card" onclick="toggle(this,'turbopack')">
+          <div class="card-name">Turbopack <span class="badge b-blue">Next.js 内置</span></div>
+          <div class="card-desc">Rust 编写，Next.js 13+ 默认构建器</div>
+        </div>
+        <div class="card" onclick="toggle(this,'webpack')">
+          <div class="card-name">Webpack 5 <span class="badge b-gray">成熟</span></div>
+          <div class="card-desc">配置最灵活，遗留大型项目</div>
+        </div>
+        <div class="card" onclick="toggle(this,'bun')">
+          <div class="card-name">Bun <span class="badge b-amber">新兴</span></div>
+          <div class="card-desc">运行时 + 包管理 + 构建一体，极速</div>
+        </div>
+      </div>
+      <div id="vite" class="panel">
+        <div class="panel-title">Vite —— 新项目首选</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>冷启动 &lt;300ms，HMR &lt;50ms，开发体验极佳</div>
+          <div class="kv"><b>生态：</b>插件丰富，支持 React / Vue / Svelte / Solid</div>
+          <div class="kv"><b>部署：</b>rollup 打包，产物 tree-shaking 彻底</div>
+          <div class="kv"><b>注意：</b>纯 Vite 无 SSR，需 SSR 要配合框架（Remix / Nuxt）</div>
+        </div>
+      </div>
+      <div id="turbopack" class="panel">
+        <div class="panel-title">Turbopack —— Next.js 生态</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>增量计算引擎，超大型 Next.js 项目构建速度优势显著</div>
+          <div class="kv"><b>状态：</b>Next.js 15 已正式稳定，可用于生产</div>
+          <div class="kv"><b>注意：</b>仅适用于 Next.js，通用性不如 Vite</div>
+        </div>
+      </div>
+      <div id="webpack" class="panel">
+        <div class="panel-title">Webpack 5 —— 遗留项目</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>已有 Webpack 配置的大型遗留项目，迁移成本高</div>
+          <div class="kv"><b>优点：</b>Module Federation 适合微前端架构</div>
+          <div class="kv"><b>建议：</b>新项目直接用 Vite，无需选 Webpack</div>
+        </div>
+      </div>
+      <div id="bun" class="panel">
+        <div class="panel-title">Bun —— 一体化工具链</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>运行时 + 包管理 + 打包器 + 测试框架全合一</div>
+          <div class="kv"><b>速度：</b>包安装比 pnpm 快 3-10x，脚本执行比 Node 快</div>
+          <div class="kv"><b>Agent 后端：</b>Hono + Bun 组合在边缘 Agent API 层性能突出</div>
+          <div class="kv"><b>风险：</b>生态兼容性偶有问题，成熟度低于 Node，生产谨慎评估</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ BACKEND ══════════════ -->
+
+    <div class="section backend" id="be-lang">
+      <div class="section-head">
+        <div class="section-dot" style="background:#5ad8a6"></div>
+        <div class="section-label">后端 — 语言 / 运行时</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'python-be')">
+          <div class="card-name">Python <span class="badge b-green">AI 首选</span></div>
+          <div class="card-desc">FastAPI async，LLM 生态最全</div>
+        </div>
+        <div class="card" onclick="toggle(this,'node-be')">
+          <div class="card-name">Node.js <span class="badge b-blue">BFF / 全栈</span></div>
+          <div class="card-desc">事件驱动，TS 全栈，流式转发</div>
+        </div>
+        <div class="card" onclick="toggle(this,'go-be')">
+          <div class="card-name">Go <span class="badge b-blue">网关/调度</span></div>
+          <div class="card-desc">goroutine 高并发，接入层首选</div>
+        </div>
+        <div class="card" onclick="toggle(this,'rust-be')">
+          <div class="card-name">Rust <span class="badge b-amber">性能极限</span></div>
+          <div class="card-desc">本地推理、边缘部署、向量核心</div>
+        </div>
+      </div>
+      <div id="python-be" class="panel">
+        <div class="panel-title">Python —— Agent 后端核心地位</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>LangChain / LlamaIndex / CrewAI / AutoGen 等框架全原生 Python</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>FastAPI async/await + SSE，IO 密集型完美适配</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Pydantic v2 工具 schema 生成，与 TypeScript Zod 理念对齐</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>数据科学栈（numpy/pandas/scipy）无缝接入</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>GIL 限 CPU 密集型（LLM 调用是 IO 型，影响有限）</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>类型系统弱于 TS，大型工程需严格用 mypy / pyright</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>部署需 Uvicorn + Gunicorn，worker 数影响并发上限</div>
+          </div>
+        </div>
+      </div>
+      <div id="node-be" class="panel">
+        <div class="panel-title">Node.js —— TypeScript 全栈方案</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>前后端共用 TS 类型，tool schema 一处定义两端复用</div>
+          <div class="kv"><b>框架：</b>Hono（轻量）、Fastify（高性能）、NestJS（企业级）</div>
+          <div class="kv"><b>场景：</b>BFF 层聚合多 LLM API、流量转发、SSE pipe</div>
+          <div class="kv"><b>注意：</b>CPU 密集型（向量计算）应 offload 到 Python 服务</div>
+        </div>
+      </div>
+      <div id="go-be" class="panel">
+        <div class="panel-title">Go —— 接入层 / 调度器</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>goroutine 成本极低，单机轻松维持 10 万+ 并发连接</div>
+          <div class="kv"><b>场景：</b>API 网关、Agent 任务调度器、工具代理服务</div>
+          <div class="kv"><b>架构：</b>Go 接入层 → Python AI 计算层，gRPC 内部通信</div>
+          <div class="kv"><b>注意：</b>LLM 生态工具极少，不适合直接写 Agent 业务逻辑</div>
+        </div>
+      </div>
+      <div id="rust-be" class="panel">
+        <div class="panel-title">Rust —— 极端性能场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>本地推理（llama.cpp 绑定）、边缘设备 Agent、向量检索核心</div>
+          <div class="kv"><b>框架：</b>Axum（HTTP）+ Tokio（async runtime）</div>
+          <div class="kv"><b>缺点：</b>学习曲线陡峭，招聘困难，LLM 框架支持最弱</div>
+          <div class="kv"><b>建议：</b>业务层用 Python / Go，Rust 只做性能关键路径</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section backend" id="be-fw">
+      <div class="section-head">
+        <div class="section-dot" style="background:#5ad8a6"></div>
+        <div class="section-label">后端 — 框架</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'fastapi')">
+          <div class="card-name">FastAPI <span class="badge b-green">Python 首选</span></div>
+          <div class="card-desc">async，Pydantic，OpenAPI 自动生成</div>
+        </div>
+        <div class="card" onclick="toggle(this,'hono-be')">
+          <div class="card-name">Hono <span class="badge b-blue">TS 轻量</span></div>
+          <div class="card-desc">Edge/Node/Bun 通用，极简高性能</div>
+        </div>
+        <div class="card" onclick="toggle(this,'nestjs')">
+          <div class="card-name">NestJS <span class="badge b-gray">企业级 TS</span></div>
+          <div class="card-desc">依赖注入，大型 Agent 平台</div>
+        </div>
+        <div class="card" onclick="toggle(this,'django')">
+          <div class="card-name">Django / DRF <span class="badge b-amber">全功能</span></div>
+          <div class="card-desc">Admin、ORM、权限，管理后台</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'flask')">
+          <div class="card-name">Flask <span class="badge b-gray">微框架</span></div>
+          <div class="card-desc">轻量 Python，原型 / 微服务</div>
+        </div>
+        <div class="card" onclick="toggle(this,'express')">
+          <div class="card-name">Express / Fastify <span class="badge b-gray">Node 经典</span></div>
+          <div class="card-desc">成熟 Node.js REST，遗留系统</div>
+        </div>
+        <div class="card" onclick="toggle(this,'grpc')">
+          <div class="card-name">gRPC <span class="badge b-blue">内部通信</span></div>
+          <div class="card-desc">服务间二进制协议，低延迟</div>
+        </div>
+      </div>
+      <div id="fastapi" class="panel">
+        <div class="panel-title">FastAPI —— Agent 后端最佳实践</div>
+        <div class="kv-grid">
+          <div class="kv"><b>流式：</b>StreamingResponse + asyncio.Queue 实现 SSE 推送</div>
+          <div class="kv"><b>工具：</b>Pydantic BaseModel → JSON Schema，直接对接 LLM tool_use</div>
+          <div class="kv"><b>性能：</b>Uvicorn 单进程 + Gunicorn 多 worker，worker = CPU×2</div>
+          <div class="kv"><b>类型：</b>配合 Python 3.12 + pyright 可做到接近 TS 的类型安全</div>
+        </div>
+      </div>
+      <div id="hono-be" class="panel">
+        <div class="panel-title">Hono —— TypeScript BFF 层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>运行时：</b>支持 Cloudflare Workers、Node、Deno、Bun 多运行时</div>
+          <div class="kv"><b>流式：</b>内置 SSE helpers，转发 LLM 流代码极简</div>
+          <div class="kv"><b>RPC：</b>Hono RPC 模式与前端共享路由类型，零 schema 重复</div>
+          <div class="kv"><b>场景：</b>轻量 Agent API 网关、Edge 部署、TS 全栈 BFF</div>
+        </div>
+      </div>
+      <div id="nestjs" class="panel">
+        <div class="panel-title">NestJS —— 企业级 TypeScript 后端</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>依赖注入 + 模块化，大型 Agent 平台工程化强</div>
+          <div class="kv"><b>优点：</b>完整 TS，前后端类型可共享（monorepo）</div>
+          <div class="kv"><b>缺点：</b>过度工程化，小团队原型开发体验差</div>
+          <div class="kv"><b>场景：</b>需要权限体系、多租户、审计日志的 Agent 平台</div>
+        </div>
+      </div>
+      <div id="django" class="panel">
+        <div class="panel-title">Django / DRF —— 管理后台</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>Admin 快速搭建 Agent 配置管理后台</div>
+          <div class="kv"><b>缺点：</b>同步 ORM 在高并发 async 场景需配合 channels</div>
+          <div class="kv"><b>建议：</b>Agent 计算层用 FastAPI，Django 做管理 / 运营侧</div>
+        </div>
+      </div>
+      <div id="flask" class="panel">
+        <div class="panel-title">Flask —— 微服务 / 原型</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>极简，适合单功能微服务（如嵌入服务、OCR 服务）</div>
+          <div class="kv"><b>缺点：</b>async 支持弱于 FastAPI，高并发需 gevent/gunicorn</div>
+          <div class="kv"><b>建议：</b>新项目优先选 FastAPI，Flask 用于遗留代码维护</div>
+        </div>
+      </div>
+      <div id="express" class="panel">
+        <div class="panel-title">Express / Fastify —— Node.js 经典</div>
+        <div class="kv-grid">
+          <div class="kv"><b>Express：</b>中间件生态最丰富，遗留 Node 项目主力</div>
+          <div class="kv"><b>Fastify：</b>性能比 Express 快 2-3x，schema 驱动，TS 友好</div>
+          <div class="kv"><b>新项目：</b>推荐 Hono（更轻量）或 Fastify，不推荐 Express</div>
+        </div>
+      </div>
+      <div id="grpc" class="panel">
+        <div class="panel-title">gRPC —— 服务间内部通信</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>Go 接入层 ↔ Python AI 计算层内部高频通信</div>
+          <div class="kv"><b>优点：</b>二进制协议，延迟低于 REST；Protobuf 强类型跨语言</div>
+          <div class="kv"><b>流式：</b>Server Streaming 适合 LLM token 流服务间传递</div>
+          <div class="kv"><b>注意：</b>调试不如 REST 直观，需配 gRPC-Web 或 Connect</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section backend" id="be-queue">
+      <div class="section-head">
+        <div class="section-dot" style="background:#5ad8a6"></div>
+        <div class="section-label">后端 — 任务队列 / 异步</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'celery')">
+          <div class="card-name">Celery <span class="badge b-green">Python 主流</span></div>
+          <div class="card-desc">分布式任务，Redis/RabbitMQ broker</div>
+        </div>
+        <div class="card" onclick="toggle(this,'arq')">
+          <div class="card-name">ARQ <span class="badge b-blue">async Redis Queue</span></div>
+          <div class="card-desc">纯 asyncio，FastAPI 深度集成</div>
+        </div>
+        <div class="card" onclick="toggle(this,'bullmq')">
+          <div class="card-name">BullMQ <span class="badge b-green">Node 推荐</span></div>
+          <div class="card-desc">Node.js Redis 队列，TypeScript 原生</div>
+        </div>
+        <div class="card" onclick="toggle(this,'dramatiq')">
+          <div class="card-name">Dramatiq <span class="badge b-gray">Celery 替代</span></div>
+          <div class="card-desc">简洁 API，Python 异步任务</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'fastapi-bg')">
+          <div class="card-name">FastAPI BackgroundTasks <span class="badge b-amber">轻量</span></div>
+          <div class="card-desc">内置后台任务，无需额外组件</div>
+        </div>
+        <div class="card" onclick="toggle(this,'temporal')">
+          <div class="card-name">Temporal <span class="badge b-purple">工作流引擎</span></div>
+          <div class="card-desc">持久化工作流，Agent 多步骤编排</div>
+        </div>
+        <div class="card" onclick="toggle(this,'rq')">
+          <div class="card-name">RQ (Redis Queue) <span class="badge b-gray">简洁</span></div>
+          <div class="card-desc">极简 Python 队列，小规模可用</div>
+        </div>
+      </div>
+      <div id="celery" class="panel">
+        <div class="panel-title">Celery —— Python 生产级任务队列</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>生态最成熟，文档丰富，支持定时任务（beat）</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>多 broker 支持（Redis / RabbitMQ）</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>任务重试、优先级队列、结果后端完备</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>同步 worker 设计，与 FastAPI async 混用需注意事件循环隔离</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>配置项繁多，序列化踩坑多（pickle 安全问题）</div>
+          </div>
+        </div>
+        <div class="tip"><b>Agent 场景：</b>LLM 长时任务（30s+）异步化，前端轮询 task_id 状态，防 HTTP 超时。</div>
+      </div>
+      <div id="arq" class="panel">
+        <div class="panel-title">ARQ —— FastAPI async 原生搭档</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>纯 asyncio，与 FastAPI 同一事件循环，无需线程切换</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>代码极简，定义 async 函数即任务，无需装饰器魔法</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>自带 health check、worker 状态监控</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>生态远不如 Celery，复杂调度能力弱</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>仅支持 Redis broker，无 RabbitMQ</div>
+          </div>
+        </div>
+        <div class="tip amber"><b>推荐场景：</b>纯 FastAPI + asyncio 技术栈，不想引入 Celery 同步线程开销；中小规模 Agent 任务队列首选。</div>
+      </div>
+      <div id="bullmq" class="panel">
+        <div class="panel-title">BullMQ —— Node.js 任务队列首选</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>TypeScript 原生，与 Hono/NestJS 无缝集成</div>
+          <div class="kv"><b>特性：</b>优先级队列、延迟任务、重复任务、Flow（任务依赖链）</div>
+          <div class="kv"><b>监控：</b>Bull Board UI 可视化队列状态</div>
+          <div class="kv"><b>Agent：</b>Flow 特性适合多步骤 Agent 工具调用依赖链编排</div>
+        </div>
+      </div>
+      <div id="dramatiq" class="panel">
+        <div class="panel-title">Dramatiq —— Celery 简洁替代</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>API 比 Celery 简洁，配置项少，不易踩坑</div>
+          <div class="kv"><b>缺点：</b>生态远不如 Celery，周边工具少</div>
+          <div class="kv"><b>适合：</b>厌倦 Celery 复杂配置，任务逻辑不太复杂的场景</div>
+        </div>
+      </div>
+      <div id="fastapi-bg" class="panel">
+        <div class="panel-title">FastAPI BackgroundTasks —— 零成本轻量方案</div>
+        <div class="kv-grid">
+          <div class="kv"><b>用法：</b><code>background_tasks.add_task(fn, arg)</code>，HTTP 响应后异步执行</div>
+          <div class="kv"><b>适合：</b>发邮件、写日志等轻量后台操作，无需额外 Redis</div>
+          <div class="kv"><b>限制：</b>无持久化，进程重启任务丢失；无重试机制；无跨进程</div>
+          <div class="kv"><b>升级：</b>任务量大或需可靠性时直接换 ARQ，接口几乎不变</div>
+        </div>
+      </div>
+      <div id="temporal" class="panel">
+        <div class="panel-title">Temporal —— 持久化工作流引擎</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>工作流代码崩溃 / 重启后自动从断点恢复，天然幂等</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Activity 超时、重试、补偿事务声明式配置</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>多 Agent 协作长流程（数小时）最合适</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>引入新服务端组件，运维复杂度上升</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>学习曲线陡，心智模型与普通队列不同</div>
+          </div>
+        </div>
+        <div class="tip green"><b>Agent 场景价值：</b>Agent 执行多步骤工具调用（搜索→分析→写文件→发通知），中途崩溃自动恢复，不需要手写状态机。</div>
+      </div>
+      <div id="rq" class="panel">
+        <div class="panel-title">RQ (Redis Queue) —— 极简场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>极简 API，5 分钟接入，Redis 即 broker</div>
+          <div class="kv"><b>缺点：</b>功能有限，无高级调度，worker 管理弱</div>
+          <div class="kv"><b>适合：</b>小规模项目，只需基础任务异步化</div>
+          <div class="kv"><b>升级路径：</b>任务量增大后平滑迁移至 Celery 或 ARQ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section backend" id="be-api">
+      <div class="section-head">
+        <div class="section-dot" style="background:#5ad8a6"></div>
+        <div class="section-label">后端 — API 规范 / 通信协议</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'rest')">
+          <div class="card-name">REST + OpenAPI <span class="badge b-green">标准</span></div>
+          <div class="card-desc">广泛兼容，自动生成客户端</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sse')">
+          <div class="card-name">SSE <span class="badge b-green">流式必选</span></div>
+          <div class="card-desc">LLM 流式输出，单向推送</div>
+        </div>
+        <div class="card" onclick="toggle(this,'ws')">
+          <div class="card-name">WebSocket <span class="badge b-blue">双向实时</span></div>
+          <div class="card-desc">多 Agent 协作，实时状态同步</div>
+        </div>
+        <div class="card" onclick="toggle(this,'trpc')">
+          <div class="card-name">tRPC <span class="badge b-purple">TS 全栈</span></div>
+          <div class="card-desc">前后端零 schema，类型端对端穿透</div>
+        </div>
+      </div>
+      <div id="rest" class="panel">
+        <div class="panel-title">REST + OpenAPI —— 对外接口标准</div>
+        <div class="kv-grid">
+          <div class="kv"><b>FastAPI：</b>自动生成 OpenAPI 文档，可直接导入 Postman</div>
+          <div class="kv"><b>类型生成：</b>openapi-ts 从 schema 生成前端 TS 类型，接口零手写</div>
+          <div class="kv"><b>版本管理：</b>/api/v1/ 前缀，Agent API 变更不影响已有客户端</div>
+          <div class="kv"><b>适合：</b>对外开放 API、第三方集成、多语言客户端场景</div>
+        </div>
+      </div>
+      <div id="sse" class="panel">
+        <div class="panel-title">Server-Sent Events —— LLM 流式输出核心</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>HTTP 原生，无需握手，自动重连，CDN 友好</div>
+          <div class="kv"><b>格式：</b><code>data: {"token": "hello"}\n\n</code> 标准事件流</div>
+          <div class="kv"><b>前端：</b>EventSource API 或 @microsoft/fetch-event-source（支持 POST）</div>
+          <div class="kv"><b>vs WebSocket：</b>单向推送足够时优先选 SSE，实现更简单</div>
+        </div>
+      </div>
+      <div id="ws" class="panel">
+        <div class="panel-title">WebSocket —— 双向实时场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>多 Agent 协作状态广播、用户中断/继续 Agent 执行</div>
+          <div class="kv"><b>框架：</b>FastAPI WebSocket、Socket.IO、Ably（托管）</div>
+          <div class="kv"><b>注意：</b>需处理心跳、重连、消息序列化，比 SSE 复杂</div>
+          <div class="kv"><b>扩展：</b>多实例部署需 Redis Pub/Sub 同步 WS 消息</div>
+        </div>
+      </div>
+      <div id="trpc" class="panel">
+        <div class="panel-title">tRPC —— TypeScript 全栈类型穿透</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>前端调用后端函数，类型端对端推导，零 schema 重复</div>
+          <div class="kv"><b>场景：</b>Next.js / Remix + Node.js 后端的 TS 全栈项目</div>
+          <div class="kv"><b>局限：</b>仅适用 TS 全栈，Python 后端无法使用</div>
+          <div class="kv"><b>替代：</b>Python 后端用 openapi-ts 生成类型，效果接近</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ DATABASE ══════════════ -->
+
+    <div class="section database" id="db-rdb">
+      <div class="section-head">
+        <div class="section-dot" style="background:#f4a535"></div>
+        <div class="section-label">数据库 — 关系型</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col3">
+        <div class="card" onclick="toggle(this,'pg')">
+          <div class="card-name">PostgreSQL <span class="badge b-green">首选</span></div>
+          <div class="card-desc">JSONB + pgvector，全能型</div>
+        </div>
+        <div class="card" onclick="toggle(this,'mysql')">
+          <div class="card-name">MySQL / TiDB <span class="badge b-blue">水平扩展</span></div>
+          <div class="card-desc">国内生态成熟，分布式事务</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sqlite')">
+          <div class="card-name">SQLite / Turso <span class="badge b-amber">嵌入/边缘</span></div>
+          <div class="card-desc">本地 Agent，Edge 部署，零运维</div>
+        </div>
+      </div>
+      <div id="pg" class="panel">
+        <div class="panel-title">PostgreSQL —— Agent 数据层核心</div>
+        <div class="kv-grid">
+          <div class="kv"><b>JSONB：</b>存 Agent 中间状态、tool_calls，schema 灵活</div>
+          <div class="kv"><b>pgvector：</b>&lt;100 万条 RAG 无需独立向量库，省运维</div>
+          <div class="kv"><b>连接池：</b>必须配 PgBouncer transaction 模式，否则高并发连接耗尽</div>
+          <div class="kv"><b>分区：</b>对话历史按月分区，热数据冷数据分离</div>
+          <div class="kv"><b>扩展：</b>pg_trgm（全文）TimescaleDB（时序）PostGIS（地理）</div>
+        </div>
+      </div>
+      <div id="mysql" class="panel">
+        <div class="panel-title">MySQL / TiDB —— 水平扩展场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>MySQL：</b>国内云厂商生态好，运维工具成熟</div>
+          <div class="kv"><b>TiDB：</b>MySQL 兼容 + NewSQL，HTAP，适合大规模 Agent 日志</div>
+          <div class="kv"><b>缺点：</b>无原生 pgvector，AI 生态弱于 PG</div>
+          <div class="kv"><b>适合：</b>已有 MySQL 技术栈，不必强制迁 PG</div>
+        </div>
+      </div>
+      <div id="sqlite" class="panel">
+        <div class="panel-title">SQLite / Turso —— 轻量场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>SQLite：</b>单用户本地 Agent 工具，无服务器部署</div>
+          <div class="kv"><b>Turso：</b>libSQL 分支，Edge 多副本，配合 Cloudflare Workers</div>
+          <div class="kv"><b>限制：</b>不支持高并发写，多 worker 并发写会锁表</div>
+          <div class="kv"><b>定位：</b>本地工具 / 单租户 Agent，不适合多用户产品</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section database" id="db-cache">
+      <div class="section-head">
+        <div class="section-dot" style="background:#f4a535"></div>
+        <div class="section-label">数据库 — 缓存 / 消息</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col3">
+        <div class="card" onclick="toggle(this,'redis')">
+          <div class="card-name">Redis <span class="badge b-green">必选</span></div>
+          <div class="card-desc">会话、限流、Pub/Sub、任务队列</div>
+        </div>
+        <div class="card" onclick="toggle(this,'kafka')">
+          <div class="card-name">Kafka <span class="badge b-blue">大规模事件</span></div>
+          <div class="card-desc">多 Agent 事件流，持久化回放</div>
+        </div>
+        <div class="card" onclick="toggle(this,'rabbitmq')">
+          <div class="card-name">RabbitMQ <span class="badge b-gray">任务分发</span></div>
+          <div class="card-desc">灵活路由，死信队列</div>
+        </div>
+      </div>
+      <div id="redis" class="panel">
+        <div class="panel-title">Redis —— Agent 系统多用途核心</div>
+        <div class="kv-grid">
+          <div class="kv"><b>会话缓存：</b>TTL 管理活跃 context，过期自动清理</div>
+          <div class="kv"><b>限流：</b>令牌桶 / 漏桶计数，防 LLM API RPM/TPM 超限</div>
+          <div class="kv"><b>任务队列：</b>BullMQ (Node) / ARQ / Celery broker</div>
+          <div class="kv"><b>Streams：</b>Agent 执行日志实时管道，替代轻量 Kafka</div>
+          <div class="kv"><b>Pub/Sub：</b>多实例 WebSocket 消息广播同步</div>
+          <div class="kv"><b>集群：</b>Redis Cluster 水平扩展，单机 QPS 10万+</div>
+        </div>
+      </div>
+      <div id="kafka" class="panel">
+        <div class="panel-title">Kafka —— 大规模多 Agent 场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>多 Agent 协作，工具调用结果广播，跨服务事件驱动</div>
+          <div class="kv"><b>优点：</b>消息持久化可回放，Agent 执行链路审计</div>
+          <div class="kv"><b>缺点：</b>运维复杂，小团队用 Redis Streams 足够</div>
+          <div class="kv"><b>托管：</b>Confluent Cloud / MSK / Redpanda（Kafka 兼容）减少运维</div>
+        </div>
+      </div>
+      <div id="rabbitmq" class="panel">
+        <div class="panel-title">RabbitMQ —— 任务分发</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>灵活路由（Exchange），死信队列处理失败工具调用</div>
+          <div class="kv"><b>缺点：</b>无消息持久化回放，不如 Kafka 适合事件溯源</div>
+          <div class="kv"><b>适合：</b>Celery 默认 broker，任务路由复杂场景</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section database" id="db-vector">
+      <div class="section-head">
+        <div class="section-dot" style="background:#f4a535"></div>
+        <div class="section-label">数据库 — 向量 / 分析</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'pgvec')">
+          <div class="card-name">pgvector <span class="badge b-green">小规模首选</span></div>
+          <div class="card-desc">PG 插件，省运维，&lt;100 万条</div>
+        </div>
+        <div class="card" onclick="toggle(this,'qdrant')">
+          <div class="card-name">Qdrant <span class="badge b-blue">生产级</span></div>
+          <div class="card-desc">Rust 编写，payload 精细过滤</div>
+        </div>
+        <div class="card" onclick="toggle(this,'weaviate')">
+          <div class="card-name">Weaviate <span class="badge b-blue">多模态</span></div>
+          <div class="card-desc">内置 vectorizer，GraphQL 查询</div>
+        </div>
+        <div class="card" onclick="toggle(this,'ch')">
+          <div class="card-name">ClickHouse <span class="badge b-amber">日志分析</span></div>
+          <div class="card-desc">Agent 执行日志，OLAP，列存</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'pinecone')">
+          <div class="card-name">Pinecone <span class="badge b-gray">托管</span></div>
+          <div class="card-desc">全托管，冷启动快，按用量</div>
+        </div>
+        <div class="card" onclick="toggle(this,'milvus')">
+          <div class="card-name">Milvus <span class="badge b-blue">大规模</span></div>
+          <div class="card-desc">分布式向量库，十亿级</div>
+        </div>
+        <div class="card" onclick="toggle(this,'timescale')">
+          <div class="card-name">TimescaleDB <span class="badge b-gray">PG 时序</span></div>
+          <div class="card-desc">Agent 指标时序，PG 扩展</div>
+        </div>
+      </div>
+      <div id="pgvec" class="panel">
+        <div class="panel-title">pgvector —— 小规模 RAG 省运维</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>知识库 &lt;100 万条，无需独立运维向量库</div>
+          <div class="kv"><b>索引：</b>HNSW（近似快）或 IVFFlat（精确慢），按需选择</div>
+          <div class="kv"><b>混合检索：</b>配合 pg_trgm BM25 全文 + 向量混合召回</div>
+          <div class="kv"><b>上限：</b>&gt;500 万条后延迟上升，考虑迁 Qdrant</div>
+        </div>
+      </div>
+      <div id="qdrant" class="panel">
+        <div class="panel-title">Qdrant —— 生产级向量库</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>Rust 编写，内存效率高，百万级毫秒查询</div>
+          <div class="kv"><b>过滤：</b>payload 字段 + 向量检索同时进行，RAG 精准召回</div>
+          <div class="kv"><b>部署：</b>单机 Docker 极简，云托管版按用量</div>
+          <div class="kv"><b>适合：</b>中大规模 RAG，需要 metadata 精细过滤</div>
+        </div>
+      </div>
+      <div id="weaviate" class="panel">
+        <div class="panel-title">Weaviate —— 多模态场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特色：</b>内置 vectorizer，文档入库自动生成向量</div>
+          <div class="kv"><b>多模态：</b>文本 + 图像 + 音频混合检索</div>
+          <div class="kv"><b>GraphQL：</b>查询接口灵活，适合复杂关联检索</div>
+          <div class="kv"><b>缺点：</b>配置复杂，JVM 内存开销大</div>
+        </div>
+      </div>
+      <div id="ch" class="panel">
+        <div class="panel-title">ClickHouse —— Agent 行为分析</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>Agent 执行链路日志、token 消耗统计、工具调用成功率</div>
+          <div class="kv"><b>优点：</b>列存压缩率高，PB 级数据秒级聚合</div>
+          <div class="kv"><b>写入：</b>批量写入（Kafka → CH），避免逐行 INSERT</div>
+          <div class="kv"><b>替代：</b>小规模用 TimescaleDB（PG 扩展），减少组件数</div>
+        </div>
+      </div>
+      <div id="pinecone" class="panel">
+        <div class="panel-title">Pinecone —— 全托管向量库</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>零运维，冷启动快，API 极简</div>
+          <div class="kv"><b>缺点：</b>数据在美国服务器，合规问题；成本随用量线性增长</div>
+          <div class="kv"><b>适合：</b>快速验证 RAG 原型，预算充足，不在意数据驻留</div>
+        </div>
+      </div>
+      <div id="milvus" class="panel">
+        <div class="panel-title">Milvus —— 十亿级向量</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>分布式架构，十亿级向量水平扩展</div>
+          <div class="kv"><b>缺点：</b>运维复杂度高，K8s 部署，小团队慎选</div>
+          <div class="kv"><b>适合：</b>超大规模知识库，企业级 RAG 平台</div>
+        </div>
+      </div>
+      <div id="timescale" class="panel">
+        <div class="panel-title">TimescaleDB —— Agent 时序指标</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>Agent 响应延迟、token 速率、成功率等时序指标</div>
+          <div class="kv"><b>优点：</b>PG 扩展，无需引入新组件，SQL 原生</div>
+          <div class="kv"><b>特性：</b>自动分区（hypertable），数据保留策略，持续聚合</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ AGENT ECOSYSTEM ══════════════ -->
+
+    <div class="section agent" id="ag-landscape">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Agent 生态参考 / Vertical Agents</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'vertical-buildbuy')">
+          <div class="card-name">Build vs Buy <span class="badge b-green">先判断</span></div>
+          <div class="card-desc">先判断你是在做底层平台，还是直接买现成 Agent 产品</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vertical-cx')">
+          <div class="card-name">客服 / 销售 Agent <span class="badge b-blue">垂类成熟</span></div>
+          <div class="card-desc">Decagon / Sierra 这类产品说明该赛道已开始平台化</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vertical-legal')">
+          <div class="card-name">法律 / 专业工作流 <span class="badge b-blue">高价值垂类</span></div>
+          <div class="card-desc">Harvey 一类产品代表“深场景 + 高客单价”模式</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vertical-assistant')">
+          <div class="card-name">个人执行助理 <span class="badge b-amber">工具整合</span></div>
+          <div class="card-desc">Lindy / MultiOn 一类更依赖工具链、浏览器与自动化</div>
+        </div>
+      </div>
+      <div id="vertical-buildbuy" class="panel">
+        <div class="panel-title">Build vs Buy —— 先判断你的问题是不是“需要自己造 Agent”</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合买：</b>客服、销售、内训、外呼、法律辅助这类已有成熟 vertical 的赛道</div>
+          <div class="kv"><b>适合自建：</b>你有强业务流程、内部工具、私有数据和差异化体验需求</div>
+          <div class="kv"><b>关键问题：</b>你的壁垒在模型和 orchestration，还是在业务数据和集成？</div>
+          <div class="kv"><b>经验：</b>很多团队其实不需要造平台，只需要买 product + 做轻集成</div>
+        </div>
+      </div>
+      <div id="vertical-cx" class="panel">
+        <div class="panel-title">客服 / 销售 Agent —— 最先成熟的平台化场景</div>
+        <div class="kv-grid">
+          <div class="kv"><b>原因：</b>流程标准化、ROI 明确、可以直接量化替代人力与转化率</div>
+          <div class="kv"><b>技术重点：</b>语音、CRM 集成、知识库、工具调用、审计留痕</div>
+          <div class="kv"><b>启发：</b>如果你也做这类场景，重点不在 LLM 调一下就行，而在流程与系统接入</div>
+          <div class="kv"><b>参考玩家：</b>图里出现的 Decagon、Sierra 更像“应用层产品”而非底层框架</div>
+        </div>
+      </div>
+      <div id="vertical-legal" class="panel">
+        <div class="panel-title">法律 / 专业工作流 —— 高准确性和审计要求</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>长文档、多轮引用、检索精准性和输出可追溯性要求高</div>
+          <div class="kv"><b>技术要求：</b>文档解析、citation、权限控制、审计、人工复核流</div>
+          <div class="kv"><b>启发：</b>这类场景说明“可追溯 + 工作流”往往比“模型聪明”更重要</div>
+          <div class="kv"><b>参考：</b>Harvey 一类产品体现的是 workflow depth，不是简单聊天机器人</div>
+        </div>
+      </div>
+      <div id="vertical-assistant" class="panel">
+        <div class="panel-title">个人执行助理 —— 工具链比模型更重要</div>
+        <div class="kv-grid">
+          <div class="kv"><b>依赖：</b>邮箱、日历、浏览器、搜索、表单、任务系统等工具接入能力</div>
+          <div class="kv"><b>关键：</b>记忆、权限、浏览器自动化、长任务编排比 prompt 更关键</div>
+          <div class="kv"><b>风险：</b>一旦跨多个 SaaS 执行动作，安全和幂等性问题会急剧上升</div>
+          <div class="kv"><b>参考：</b>Lindy、MultiOn 这类产品更像“自动化平台 + Agent 交互层”</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section agent" id="ag-hosting">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Agent Hosting / Serving</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'host-langgraph')">
+          <div class="card-name">LangGraph Platform <span class="badge b-green">工作流托管</span></div>
+          <div class="card-desc">有状态图工作流托管、恢复、可视化</div>
+        </div>
+        <div class="card" onclick="toggle(this,'host-letta')">
+          <div class="card-name">Letta <span class="badge b-blue">状态 + 记忆</span></div>
+          <div class="card-desc">更强调长期记忆和 agent state 的运行平台</div>
+        </div>
+        <div class="card" onclick="toggle(this,'host-bedrock')">
+          <div class="card-name">Bedrock Agents <span class="badge b-gray">云托管</span></div>
+          <div class="card-desc">AWS 内部集成强，偏企业托管式 Agent</div>
+        </div>
+        <div class="card" onclick="toggle(this,'host-livekit')">
+          <div class="card-name">LiveKit Agents <span class="badge b-purple">实时语音</span></div>
+          <div class="card-desc">把语音 / RTC 运行时和 Agent orchestration 绑在一起</div>
+        </div>
+      </div>
+      <div id="host-langgraph" class="panel">
+        <div class="panel-title">LangGraph Platform —— 工作流托管层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>把 graph 定义、执行状态、checkpoint、调试可视化一起托管</div>
+          <div class="kv"><b>适合：</b>复杂多步骤 Agent，不想自己维护状态恢复与运行编排</div>
+          <div class="kv"><b>与框架区别：</b>LangGraph 是框架，Platform 是运行托管层</div>
+          <div class="kv"><b>建议：</b>当工作流复杂度很高时，再考虑平台层，不必一开始就引入</div>
+        </div>
+      </div>
+      <div id="host-letta" class="panel">
+        <div class="panel-title">Letta —— 记忆和状态导向的 Agent Hosting</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>更强调长期状态、记忆和 agent lifecycle 管理</div>
+          <div class="kv"><b>适合：</b>需要 persistent agent、长期 persona、长期用户上下文的产品</div>
+          <div class="kv"><b>和 workflow 区别：</b>它更像“有状态 agent runtime”，不是纯流程编排器</div>
+          <div class="kv"><b>建议：</b>当“记忆本身”是产品能力时重点评估</div>
+        </div>
+      </div>
+      <div id="host-bedrock" class="panel">
+        <div class="panel-title">Bedrock Agents —— 云厂商托管式 Agent 平台</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>和云上 IAM、日志、知识库、模型服务集成紧</div>
+          <div class="kv"><b>适合：</b>AWS 重度用户，平台治理和合规优先的企业环境</div>
+          <div class="kv"><b>限制：</b>可移植性弱，抽象深，调试和迁移成本较高</div>
+          <div class="kv"><b>判断：</b>如果你主要价值在业务，不想自己搭 runtime，可考虑托管型</div>
+        </div>
+      </div>
+      <div id="host-livekit" class="panel">
+        <div class="panel-title">LiveKit Agents —— 实时交互型 Agent 的运行平台</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>语音、视频、房间、媒体转发和 Agent 调用统一到一层</div>
+          <div class="kv"><b>适合：</b>会议助手、电话机器人、实时语音 copilot</div>
+          <div class="kv"><b>重点：</b>当媒体链路是核心，不要把它当成普通文本 Agent 来做</div>
+          <div class="kv"><b>结论：</b>实时 Agent 更像“媒体系统 + 智能层”，不是单一模型 API</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section agent" id="ag-memory">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Agent Memory</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'memgpt')">
+          <div class="card-name">MemGPT / Letta Memory <span class="badge b-green">概念来源</span></div>
+          <div class="card-desc">把短期上下文和长期记忆分层管理</div>
+        </div>
+        <div class="card" onclick="toggle(this,'zep')">
+          <div class="card-name">Zep <span class="badge b-blue">会话记忆</span></div>
+          <div class="card-desc">会话摘要、用户画像、事实提取</div>
+        </div>
+        <div class="card" onclick="toggle(this,'mem0')">
+          <div class="card-name">mem0 <span class="badge b-blue">轻量记忆层</span></div>
+          <div class="card-desc">以事实和偏好为中心的 memory 抽取</div>
+        </div>
+        <div class="card" onclick="toggle(this,'langmem')">
+          <div class="card-name">LangMem <span class="badge b-gray">LangChain 系</span></div>
+          <div class="card-desc">把记忆纳入 LangGraph / LangChain 工作流</div>
+        </div>
+      </div>
+      <div id="memgpt" class="panel">
+        <div class="panel-title">MemGPT / Letta Memory —— 记忆不是把聊天记录全塞回 prompt</div>
+        <div class="kv-grid">
+          <div class="kv"><b>核心思想：</b>短期工作记忆、长期事实记忆、外部检索记忆要分层</div>
+          <div class="kv"><b>价值：</b>降低上下文膨胀，同时让 Agent 保留稳定的人物设定和用户偏好</div>
+          <div class="kv"><b>适合：</b>长期陪伴、个人助理、重复协作型 Agent</div>
+          <div class="kv"><b>警告：</b>记忆写错比没记住更危险，必须支持修正和删除</div>
+        </div>
+      </div>
+      <div id="zep" class="panel">
+        <div class="panel-title">Zep —— 会话级记忆产品化做得比较完整</div>
+        <div class="kv-grid">
+          <div class="kv"><b>功能：</b>会话摘要、事实提取、用户资料和知识片段检索</div>
+          <div class="kv"><b>适合：</b>想快速把 memory 做成现成组件，而不是自己从零设计 schema</div>
+          <div class="kv"><b>关键：</b>memory 不是历史记录存档，而是可供 Agent 真正调用的结构化信息</div>
+          <div class="kv"><b>建议：</b>把记忆命中率和错误写入率作为单独指标看</div>
+        </div>
+      </div>
+      <div id="mem0" class="panel">
+        <div class="panel-title">mem0 —— 轻量、产品导向的记忆抽取</div>
+        <div class="kv-grid">
+          <div class="kv"><b>定位：</b>从交互中提取偏好、事实、长期信息，供后续对话复用</div>
+          <div class="kv"><b>优点：</b>上手快，适合先验证“记忆是不是产品核心价值”</div>
+          <div class="kv"><b>场景：</b>销售、客服、个人助手等需要连续理解用户的产品</div>
+          <div class="kv"><b>限制：</b>复杂记忆治理仍要补自己的规则和审计体系</div>
+        </div>
+      </div>
+      <div id="langmem" class="panel">
+        <div class="panel-title">LangMem —— 把记忆接进 LangGraph 工作流</div>
+        <div class="kv-grid">
+          <div class="kv"><b>好处：</b>记忆写入、读取和 agent state 更新可以纳入同一条 workflow</div>
+          <div class="kv"><b>适合：</b>已经采用 LangChain / LangGraph，想避免 memory 成为外挂系统</div>
+          <div class="kv"><b>工程价值：</b>记忆从“prompt 拼接”进化为“工作流节点”</div>
+          <div class="kv"><b>建议：</b>只有在 workflow 已经复杂时再引入，不然会过度设计</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section agent" id="ag-tools">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Tool Libraries</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'composio')">
+          <div class="card-name">Composio <span class="badge b-green">SaaS 工具层</span></div>
+          <div class="card-desc">Gmail、Slack、HubSpot 等 SaaS 工具标准化接入</div>
+        </div>
+        <div class="card" onclick="toggle(this,'browserbase')">
+          <div class="card-name">Browserbase <span class="badge b-blue">浏览器执行</span></div>
+          <div class="card-desc">远程浏览器会话、持久化登录态、自动化基础设施</div>
+        </div>
+        <div class="card" onclick="toggle(this,'exa')">
+          <div class="card-name">Exa <span class="badge b-blue">搜索 API</span></div>
+          <div class="card-desc">面向 LLM / Agent 的搜索与网页内容接口</div>
+        </div>
+        <div class="card" onclick="toggle(this,'firecrawl')">
+          <div class="card-name">Firecrawl <span class="badge b-gray">网页抽取</span></div>
+          <div class="card-desc">把网页抓取和清洗变成稳定可调用工具</div>
+        </div>
+      </div>
+      <div id="composio" class="panel">
+        <div class="panel-title">Composio —— 让 SaaS 集成从工程问题变成配置问题</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>把 OAuth、权限、刷新 token、API 细节封装成工具层</div>
+          <div class="kv"><b>适合：</b>个人助理、销售助手、运营 Agent 这类强依赖外部 SaaS 的产品</div>
+          <div class="kv"><b>关键：</b>外部工具越多，统一工具层越有价值</div>
+          <div class="kv"><b>风险：</b>依赖第三方工具层意味着权限和稳定性也被外包了一部分</div>
+        </div>
+      </div>
+      <div id="browserbase" class="panel">
+        <div class="panel-title">Browserbase —— 浏览器能力是很多 Agent 的真正执行面</div>
+        <div class="kv-grid">
+          <div class="kv"><b>用途：</b>登录网站、读取页面、提交表单、抓取结果、自动化工作流</div>
+          <div class="kv"><b>适合：</b>没有标准 API 的业务系统、需要模拟真实用户操作的任务</div>
+          <div class="kv"><b>关键：</b>浏览器工具必须和会话持久化、沙箱、安全审计一起看</div>
+          <div class="kv"><b>经验：</b>很多“智能助理”本质上是浏览器自动化产品</div>
+        </div>
+      </div>
+      <div id="exa" class="panel">
+        <div class="panel-title">Exa —— 搜索层为 LLM / Agent 优化</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>把搜索和网页内容获取做成对 Agent 更友好的 API</div>
+          <div class="kv"><b>适合：</b>研究助手、网页问答、市场调研、多来源信息汇总</div>
+          <div class="kv"><b>对比：</b>比通用搜索 API 更偏 LLM 友好，但仍要自己做结果验证</div>
+          <div class="kv"><b>建议：</b>搜索和抓取最好拆成两层工具，而不是一把梭</div>
+        </div>
+      </div>
+      <div id="firecrawl" class="panel">
+        <div class="panel-title">Firecrawl —— 网页抓取层工程化</div>
+        <div class="kv-grid">
+          <div class="kv"><b>作用：</b>把网页转 markdown / 结构化内容，减少自己养爬虫的成本</div>
+          <div class="kv"><b>适合：</b>网站知识库、竞品监控、外部情报采集</div>
+          <div class="kv"><b>价值：</b>让工具调用聚焦业务，而不是处理网页脏数据</div>
+          <div class="kv"><b>限制：</b>受站点反爬、登录态、动态渲染影响时仍需要浏览器层配合</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section agent" id="ag-sandbox">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Sandboxes</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'sandbox-e2b')">
+          <div class="card-name">E2B <span class="badge b-green">Agent 友好</span></div>
+          <div class="card-desc">临时代码沙箱、文件系统、命令执行环境</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sandbox-modal')">
+          <div class="card-name">Modal <span class="badge b-blue">弹性计算</span></div>
+          <div class="card-desc">更偏云函数 / 容器计算，不止是沙箱</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sandbox-firecracker')">
+          <div class="card-name">Firecracker / microVM <span class="badge b-gray">隔离更强</span></div>
+          <div class="card-desc">把执行环境提升到 microVM 级别</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sandbox-browser')">
+          <div class="card-name">Browser Sandbox <span class="badge b-purple">网页执行</span></div>
+          <div class="card-desc">浏览器自动化本身也要视作沙箱问题</div>
+        </div>
+      </div>
+      <div id="sandbox-e2b" class="panel">
+        <div class="panel-title">E2B —— 为 Agent 设计的执行沙箱</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>代码解释器、数据分析、文件转换、短时工具执行</div>
+          <div class="kv"><b>优点：</b>接入快，抽象贴近 Agent 场景，不必自己从 K8s 开始搭</div>
+          <div class="kv"><b>关键：</b>沙箱生命周期、资源上限、网络权限要单独配置</div>
+          <div class="kv"><b>结论：</b>当 Agent 能写代码时，沙箱不是可选项</div>
+        </div>
+      </div>
+      <div id="sandbox-modal" class="panel">
+        <div class="panel-title">Modal —— 更像弹性计算层，不只是沙箱</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>GPU / CPU 任务、批处理、容器函数、模型服务</div>
+          <div class="kv"><b>适合：</b>需要把执行环境和计算资源一起托管的 Agent 工具</div>
+          <div class="kv"><b>区别：</b>它更接近“运行平台”，安全隔离只是其中一部分</div>
+          <div class="kv"><b>判断：</b>如果任务更像 compute job，Modal 比纯 sandbox 更合适</div>
+        </div>
+      </div>
+      <div id="sandbox-firecracker" class="panel">
+        <div class="panel-title">Firecracker / microVM —— 高隔离执行底座</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优势：</b>隔离强度高于普通容器，适合高风险代码执行</div>
+          <div class="kv"><b>适合：</b>政企、金融、用户代码执行、多租户不可信负载</div>
+          <div class="kv"><b>代价：</b>自建复杂度高，调度和镜像管理成本显著上升</div>
+          <div class="kv"><b>建议：</b>安全要求高时才上，不要为了“听起来高级”硬上</div>
+        </div>
+      </div>
+      <div id="sandbox-browser" class="panel">
+        <div class="panel-title">Browser Sandbox —— 浏览器自动化也必须隔离</div>
+        <div class="kv-grid">
+          <div class="kv"><b>原因：</b>浏览器 Agent 会触网、登录、下载、执行脚本，风险不低于代码执行</div>
+          <div class="kv"><b>适合：</b>网页操作 Agent、RPA、表单填写、站点巡检</div>
+          <div class="kv"><b>建议：</b>浏览器会话、代理、下载目录、凭证注入都要隔离管理</div>
+          <div class="kv"><b>经验：</b>很多团队只做代码沙箱，不做浏览器隔离，这是常见漏洞</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ AGENT FRAMEWORKS ══════════════ -->
+
+    <div class="section agent" id="ag-fw">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">Agent 编排框架</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'langchain')">
+          <div class="card-name">LangChain <span class="badge b-blue">生态最大</span></div>
+          <div class="card-desc">Python/JS，Chain/Agent/RAG 全套</div>
+        </div>
+        <div class="card" onclick="toggle(this,'langgraph')">
+          <div class="card-name">LangGraph <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">有状态多 Agent 图，循环 / 条件流</div>
+        </div>
+        <div class="card" onclick="toggle(this,'llamaindex')">
+          <div class="card-name">LlamaIndex <span class="badge b-blue">RAG 专精</span></div>
+          <div class="card-desc">数据接入、检索、合成全链路</div>
+        </div>
+        <div class="card" onclick="toggle(this,'crewai')">
+          <div class="card-name">CrewAI <span class="badge b-purple">多 Agent</span></div>
+          <div class="card-desc">角色型多 Agent 协作，任务分工</div>
+        </div>
+      </div>
+      <div class="cards col3" style="margin-top:8px">
+        <div class="card" onclick="toggle(this,'autogen')">
+          <div class="card-name">AutoGen <span class="badge b-gray">微软</span></div>
+          <div class="card-desc">对话型多 Agent，代码执行沙箱</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vercelai')">
+          <div class="card-name">Vercel AI SDK <span class="badge b-green">TS 全栈</span></div>
+          <div class="card-desc">前后端统一，流式 UI，工具调用</div>
+        </div>
+        <div class="card" onclick="toggle(this,'pydantic-ai')">
+          <div class="card-name">Pydantic AI <span class="badge b-blue">类型安全</span></div>
+          <div class="card-desc">类型驱动，与 FastAPI 栈无缝</div>
+        </div>
+      </div>
+      <div id="langchain" class="panel">
+        <div class="panel-title">LangChain —— 生态最大但需谨慎</div>
+        <div class="pc-grid">
+          <div class="pc-box">
+            <div class="pc-label pros">优势</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>集成数量最多（200+ LLM、向量库、工具）</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>文档 / 教程最丰富，社区最大</div>
+            <div class="pc-item"><span class="sym sym-g">+</span>Python + JS 双语言支持</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-label cons">注意</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>抽象层过多，调试困难，升级频繁破坏性变更</div>
+            <div class="pc-item"><span class="sym sym-r">-</span>生产场景可控性差，建议直接用 SDK + LangGraph</div>
+          </div>
+        </div>
+      </div>
+      <div id="langgraph" class="panel">
+        <div class="panel-title">LangGraph —— 有状态 Agent 图</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>图节点 = Agent 步骤，边 = 条件转移，支持循环</div>
+          <div class="kv"><b>状态：</b>内置 checkpoint，每步持久化，崩溃可恢复</div>
+          <div class="kv"><b>场景：</b>ReAct loop、规划-执行-反思循环、Human-in-the-loop</div>
+          <div class="kv"><b>部署：</b>LangGraph Cloud 托管，或自部署</div>
+        </div>
+        <div class="tip green"><b>推荐：</b>复杂多步骤 Agent 工作流首选，比手写状态机省 80% 代码。</div>
+      </div>
+      <div id="llamaindex" class="panel">
+        <div class="panel-title">LlamaIndex —— RAG 专精</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>数据接入（PDF/网页/数据库）、分块、向量化、检索、重排</div>
+          <div class="kv"><b>高级 RAG：</b>HyDE、父子分块、多向量检索开箱即用</div>
+          <div class="kv"><b>Agent：</b>QueryEngine 作为 Agent 工具，数据驱动 Agent</div>
+          <div class="kv"><b>vs LangChain：</b>RAG 能力更专精，但 Agent 编排弱于 LangGraph</div>
+        </div>
+      </div>
+      <div id="crewai" class="panel">
+        <div class="panel-title">CrewAI —— 角色型多 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>概念：</b>Agent 有角色（Researcher / Writer / Reviewer），任务分工</div>
+          <div class="kv"><b>优点：</b>声明式配置，快速搭建多 Agent 协作原型</div>
+          <div class="kv"><b>缺点：</b>复杂流程控制能力弱于 LangGraph</div>
+          <div class="kv"><b>适合：</b>内容生成、研究报告、流水线型多 Agent 任务</div>
+        </div>
+      </div>
+      <div id="autogen" class="panel">
+        <div class="panel-title">AutoGen —— 对话型多 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>Agent 间通过自然语言对话协作，代码执行沙箱内置</div>
+          <div class="kv"><b>场景：</b>数据分析 Agent、编程辅助 Agent、研究助手</div>
+          <div class="kv"><b>v0.4：</b>重构为事件驱动架构，生产可用性提升</div>
+          <div class="kv"><b>缺点：</b>多 Agent 对话成本高，token 消耗大</div>
+        </div>
+      </div>
+      <div id="vercelai" class="panel">
+        <div class="panel-title">Vercel AI SDK —— TypeScript 全栈 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>前端 React Hooks + 后端 Node 统一 API，零 schema 重复</div>
+          <div class="kv"><b>工具：</b>tool() 声明即类型，Zod 验证入参，流式工具结果</div>
+          <div class="kv"><b>流式 UI：</b>streamUI() 可流式返回 React 组件，非仅文本</div>
+          <div class="kv"><b>适合：</b>Next.js + Node 的 TS 全栈 Agent 产品</div>
+        </div>
+      </div>
+      <div id="pydantic-ai" class="panel">
+        <div class="panel-title">Pydantic AI —— 类型安全 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>与 FastAPI / Pydantic 栈无缝集成，工具 schema 自动推导</div>
+          <div class="kv"><b>类型：</b>Agent 返回值有强类型，减少 LLM 输出解析错误</div>
+          <div class="kv"><b>测试：</b>内置 TestModel，无需调用真实 LLM 可单测 Agent 逻辑</div>
+          <div class="kv"><b>新兴：</b>2024 年底发布，生态尚在成长，生产前评估稳定性</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section observability" id="obs-agent">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">可观测性 — Agent Trace / Eval</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'langsmith')">
+          <div class="card-name">LangSmith <span class="badge b-blue">LangChain 系</span></div>
+          <div class="card-desc">链路追踪、评估、数据集管理</div>
+        </div>
+        <div class="card" onclick="toggle(this,'phoenix')">
+          <div class="card-name">Arize Phoenix <span class="badge b-green">开源</span></div>
+          <div class="card-desc">LLM 可观测性，RAG 评估</div>
+        </div>
+        <div class="card" onclick="toggle(this,'langfuse')">
+          <div class="card-name">Langfuse <span class="badge b-green">开源</span></div>
+          <div class="card-desc">Trace / Eval / Prompt 管理</div>
+        </div>
+        <div class="card" onclick="toggle(this,'helicone')">
+          <div class="card-name">Helicone <span class="badge b-gray">代理层</span></div>
+          <div class="card-desc">LLM 代理，成本监控，缓存</div>
+        </div>
+        <div class="card" onclick="toggle(this,'braintrust')">
+          <div class="card-name">Braintrust <span class="badge b-blue">Eval 优先</span></div>
+          <div class="card-desc">数据集、回归评测、线上反馈闭环</div>
+        </div>
+        <div class="card" onclick="toggle(this,'promptfoo')">
+          <div class="card-name">Promptfoo <span class="badge b-amber">本地评测</span></div>
+          <div class="card-desc">Prompt / Guardrail / 红队测试自动化</div>
+        </div>
+      </div>
+      <div id="langsmith" class="panel">
+        <div class="panel-title">LangSmith —— LangChain 生态可观测</div>
+        <div class="kv-grid">
+          <div class="kv"><b>链路追踪：</b>每步 LLM 调用、工具调用、token 用量全记录</div>
+          <div class="kv"><b>评估：</b>内置评估器（LLM-as-judge），回归测试 Agent 质量</div>
+          <div class="kv"><b>数据集：</b>从生产 trace 构建测试集，持续评估</div>
+          <div class="kv"><b>缺点：</b>非 LangChain 栈接入需额外配置</div>
+        </div>
+      </div>
+      <div id="phoenix" class="panel">
+        <div class="panel-title">Arize Phoenix —— 开源 LLM 可观测</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>OpenTelemetry 兼容，任意框架接入</div>
+          <div class="kv"><b>RAG 评估：</b>召回质量、生成质量、幻觉检测内置</div>
+          <div class="kv"><b>部署：</b>本地 Docker 自托管，数据不出内网</div>
+        </div>
+      </div>
+      <div id="langfuse" class="panel">
+        <div class="panel-title">Langfuse —— 生产级 Agent 监控</div>
+        <div class="kv-grid">
+          <div class="kv"><b>功能：</b>Trace、Span、Generation 分层追踪</div>
+          <div class="kv"><b>Prompt 管理：</b>版本控制 Prompt，A/B 测试，上线无需改代码</div>
+          <div class="kv"><b>开源：</b>可自托管，数据完全自控</div>
+          <div class="kv"><b>集成：</b>OpenAI / Anthropic SDK 一行接入</div>
+        </div>
+      </div>
+      <div id="helicone" class="panel">
+        <div class="panel-title">Helicone —— LLM 代理层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>特点：</b>作为 OpenAI API 代理，无侵入式接入</div>
+          <div class="kv"><b>功能：</b>成本监控、请求缓存（降低 30%+ 费用）、速率限制</div>
+          <div class="kv"><b>适合：</b>快速接入，不想改 Agent 代码的监控方案</div>
+        </div>
+      </div>
+      <div id="braintrust" class="panel">
+        <div class="panel-title">Braintrust —— 评测优先的 Agent 研发闭环</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>把生产 trace、人工标注和自动评分串成统一 eval pipeline</div>
+          <div class="kv"><b>数据集：</b>以样本集驱动回归测试，适合 Agent 版本迭代</div>
+          <div class="kv"><b>适合：</b>团队已经把 prompt / tool 变更纳入工程发布流程</div>
+          <div class="kv"><b>注意：</b>更偏质量工程，不是纯监控面板替代品</div>
+        </div>
+      </div>
+      <div id="promptfoo" class="panel">
+        <div class="panel-title">Promptfoo —— 本地化 Prompt / Guardrail 测试</div>
+        <div class="kv-grid">
+          <div class="kv"><b>定位：</b>CLI 驱动的 prompt 回归、红队攻击和策略验证工具</div>
+          <div class="kv"><b>场景：</b>测试 prompt injection、PII 泄漏、拒答策略是否生效</div>
+          <div class="kv"><b>优点：</b>适合进 CI，和 Git 版本管理天然兼容</div>
+          <div class="kv"><b>限制：</b>偏离线验证，不承担生产 trace 展示职责</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section observability" id="obs-platform">
+      <div class="section-head">
+        <div class="section-dot" style="background:#4fc3f7"></div>
+        <div class="section-label">可观测性 — Metrics / Logs / Traces</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'otel')">
+          <div class="card-name">OpenTelemetry <span class="badge b-green">标准层</span></div>
+          <div class="card-desc">Trace / Metric / Log 统一语义规范</div>
+        </div>
+        <div class="card" onclick="toggle(this,'prometheus')">
+          <div class="card-name">Prometheus <span class="badge b-blue">指标</span></div>
+          <div class="card-desc">系统和业务指标采集，时序告警</div>
+        </div>
+        <div class="card" onclick="toggle(this,'grafana')">
+          <div class="card-name">Grafana <span class="badge b-blue">可视化</span></div>
+          <div class="card-desc">统一看板，接 Prometheus / Loki / Tempo</div>
+        </div>
+        <div class="card" onclick="toggle(this,'lgtm')">
+          <div class="card-name">Loki / Tempo <span class="badge b-gray">日志 + Trace</span></div>
+          <div class="card-desc">Grafana 栈里的日志和链路存储</div>
+        </div>
+      </div>
+      <div id="otel" class="panel">
+        <div class="panel-title">OpenTelemetry —— Agent 与系统观测的公共语言</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>把模型调用、tool span、HTTP span、DB span 串成同一条 trace</div>
+          <div class="kv"><b>好处：</b>框架可替换，Langfuse / Phoenix / Tempo 都能吃 OTel 数据</div>
+          <div class="kv"><b>建议：</b>从一开始就统一 trace_id，避免后面补链路成本极高</div>
+          <div class="kv"><b>落地：</b>前端、BFF、Agent worker、DB 网关都要传上下文</div>
+        </div>
+      </div>
+      <div id="prometheus" class="panel">
+        <div class="panel-title">Prometheus —— 系统与业务指标基座</div>
+        <div class="kv-grid">
+          <div class="kv"><b>看什么：</b>QPS、P95、worker backlog、LLM 429、tool 失败率、token 吞吐</div>
+          <div class="kv"><b>模式：</b>pull 抓取 + Alertmanager 告警，适合 K8s / 容器环境</div>
+          <div class="kv"><b>Agent 补充：</b>自定义业务指标必须单独暴露，不能只靠日志</div>
+          <div class="kv"><b>限制：</b>高基数 label 会把时序库打爆，trace_id 不能直接当 label</div>
+        </div>
+      </div>
+      <div id="grafana" class="panel">
+        <div class="panel-title">Grafana —— 把模型成本、系统指标和业务质量放进同一张图</div>
+        <div class="kv-grid">
+          <div class="kv"><b>统一视图：</b>把 token 消耗、latency、error rate、队列 backlog 和 RAG 质量并排看</div>
+          <div class="kv"><b>适合：</b>研发、运维、产品共用的跨角色看板</div>
+          <div class="kv"><b>推荐：</b>把“模型成本 / 每任务成功率 / 平均步骤数”做成固定 dashboard</div>
+          <div class="kv"><b>注意：</b>Grafana 负责展示，不负责存储，要和下层系统搭配</div>
+        </div>
+      </div>
+      <div id="lgtm" class="panel">
+        <div class="panel-title">Loki / Tempo —— 开源可观测组合</div>
+        <div class="kv-grid">
+          <div class="kv"><b>Loki：</b>适合结构化日志，成本低于 Elasticsearch，Grafana 原生兼容</div>
+          <div class="kv"><b>Tempo：</b>专做 trace，和 OTel / Grafana 配合顺畅</div>
+          <div class="kv"><b>适合：</b>想自托管 observability stack，又不想上太重 ELK 的团队</div>
+          <div class="kv"><b>经验：</b>日志里一定要带 trace_id / user_id / task_id，排查才够快</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section serving" id="srv-runtime">
+      <div class="section-head">
+        <div class="section-dot" style="background:#2a7de1"></div>
+        <div class="section-label">模型服务 / 推理层 — 推理运行时</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'vllm')">
+          <div class="card-name">vLLM <span class="badge b-green">主流首选</span></div>
+          <div class="card-desc">PagedAttention，高吞吐开源推理服务</div>
+        </div>
+        <div class="card" onclick="toggle(this,'sglang')">
+          <div class="card-name">SGLang <span class="badge b-blue">结构化生成</span></div>
+          <div class="card-desc">更擅长复杂解码与 agentic workload</div>
+        </div>
+        <div class="card" onclick="toggle(this,'ollama')">
+          <div class="card-name">Ollama <span class="badge b-amber">本地开发</span></div>
+          <div class="card-desc">单机本地模型管理，开发体验极简</div>
+        </div>
+        <div class="card" onclick="toggle(this,'llamacpp')">
+          <div class="card-name">llama.cpp <span class="badge b-gray">边缘 / CPU</span></div>
+          <div class="card-desc">CPU / Apple Silicon / 边缘设备推理</div>
+        </div>
+      </div>
+      <div id="vllm" class="panel">
+        <div class="panel-title">vLLM —— 开源模型服务事实标准</div>
+        <div class="kv-grid">
+          <div class="kv"><b>核心：</b>PagedAttention 提升 KV cache 利用率，多并发吞吐显著高于传统 HF serving</div>
+          <div class="kv"><b>场景：</b>Qwen、Llama、DeepSeek 等开源模型对外提供 OpenAI 兼容接口</div>
+          <div class="kv"><b>优势：</b>适合长上下文、多请求 batch、Agent 高并发调用</div>
+          <div class="kv"><b>注意：</b>模型切换和多 LoRA 管理复杂度较高，需单独规划 GPU 池</div>
+        </div>
+      </div>
+      <div id="sglang" class="panel">
+        <div class="panel-title">SGLang —— 复杂 Agent 生成控制更强</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>结构化解码、speculative decoding、tool-heavy workflow 的控制力更强</div>
+          <div class="kv"><b>适合：</b>代码生成、JSON 输出、需要高可控推理流程的服务</div>
+          <div class="kv"><b>定位：</b>比 vLLM 更偏“推理编程框架”，不是纯通用 serving 替代</div>
+          <div class="kv"><b>建议：</b>当输出格式约束很强时优先评估 SGLang</div>
+        </div>
+      </div>
+      <div id="ollama" class="panel">
+        <div class="panel-title">Ollama —— 本地开发与 PoC 最顺手</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>一条命令拉模型，Mac / Linux 本地体验非常顺</div>
+          <div class="kv"><b>适合：</b>原型验证、个人工具、本地 copilot、CI 里的轻量冒烟测试</div>
+          <div class="kv"><b>限制：</b>吞吐和多租户能力远弱于 vLLM / KServe 生产方案</div>
+          <div class="kv"><b>结论：</b>开发环境优先，生产环境谨慎</div>
+        </div>
+      </div>
+      <div id="llamacpp" class="panel">
+        <div class="panel-title">llama.cpp —— CPU / 边缘设备推理首选</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>量化模型在 CPU、M 系芯片、嵌入式设备上都能跑</div>
+          <div class="kv"><b>场景：</b>本地私有 Agent、离线助手、终端工具、边缘盒子</div>
+          <div class="kv"><b>优点：</b>部署面最广，生态成熟，很多上层产品都基于它</div>
+          <div class="kv"><b>限制：</b>吞吐较低，不适合服务化多用户高并发</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section serving" id="srv-platform">
+      <div class="section-head">
+        <div class="section-dot" style="background:#2a7de1"></div>
+        <div class="section-label">模型服务 / 推理层 — 模型网关 / 服务编排</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'litellm')">
+          <div class="card-name">LiteLLM <span class="badge b-green">推荐</span></div>
+          <div class="card-desc">多模型统一代理，路由、回退、预算控制</div>
+        </div>
+        <div class="card" onclick="toggle(this,'kserve')">
+          <div class="card-name">KServe <span class="badge b-blue">K8s 原生</span></div>
+          <div class="card-desc">模型服务标准化部署，适合平台团队</div>
+        </div>
+        <div class="card" onclick="toggle(this,'bentoml')">
+          <div class="card-name">BentoML <span class="badge b-blue">服务化</span></div>
+          <div class="card-desc">把 Python 推理逻辑打成可部署服务</div>
+        </div>
+        <div class="card" onclick="toggle(this,'rayserve')">
+          <div class="card-name">Ray Serve <span class="badge b-gray">大规模编排</span></div>
+          <div class="card-desc">多模型、多副本、多阶段 pipeline</div>
+        </div>
+      </div>
+      <div id="litellm" class="panel">
+        <div class="panel-title">LiteLLM —— 多模型代理与成本治理层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>把 OpenAI、Anthropic、Gemini、vLLM、自建模型统一成同一接口</div>
+          <div class="kv"><b>功能：</b>fallback、weighted routing、budget、缓存、日志</div>
+          <div class="kv"><b>场景：</b>Agent 按任务类型切模型，或做云上 / 自建混合路由</div>
+          <div class="kv"><b>当前主流：</b>OpenAI 看 GPT-5.4 / GPT-5.4-mini / gpt-realtime-1.5；Claude Code 看 Opus 4.6 / Sonnet 4.6</div>
+          <div class="kv"><b>开源 / 国产：</b>Qwen 看 Qwen3 / Qwen3-Coder / Qwen2.5-VL，GLM 看 GLM-5 / GLM-4.5V，DeepSeek API 当前是 deepseek-chat / deepseek-reasoner（V3.2）</div>
+        </div>
+      </div>
+      <div id="kserve" class="panel">
+        <div class="panel-title">KServe —— 平台化模型托管</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>已经有 Kubernetes 平台团队，需要统一模型部署规范</div>
+          <div class="kv"><b>能力：</b>autoscaling、canary、GPU 调度、推理服务 CRD</div>
+          <div class="kv"><b>优点：</b>把模型服务纳入平台治理，比各团队自己起容器更规范</div>
+          <div class="kv"><b>成本：</b>系统较重，小团队原型期不必上来就用</div>
+        </div>
+      </div>
+      <div id="bentoml" class="panel">
+        <div class="panel-title">BentoML —— Python 推理服务化很顺手</div>
+        <div class="kv-grid">
+          <div class="kv"><b>定位：</b>把 Python 模型逻辑、依赖和 API 一起打包成可部署单元</div>
+          <div class="kv"><b>适合：</b>embedding service、reranker、classifier、vision service</div>
+          <div class="kv"><b>好处：</b>研发用 Python 写，交付给平台时仍然像标准服务</div>
+          <div class="kv"><b>边界：</b>大规模集群治理仍需结合 K8s / service mesh</div>
+        </div>
+      </div>
+      <div id="rayserve" class="panel">
+        <div class="panel-title">Ray Serve —— 多阶段推理 pipeline</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>多个模型节点串成服务图，适合复杂 inference pipeline</div>
+          <div class="kv"><b>场景：</b>ASR → VLM → reranker → LLM 这类链式推理服务</div>
+          <div class="kv"><b>适合：</b>GPU 集群较大、模型和数据处理算子很多的平台</div>
+          <div class="kv"><b>缺点：</b>运维复杂度高，单一模型服务时不如 LiteLLM / BentoML 轻量</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section multimodal" id="mm-understand">
+      <div class="section-head">
+        <div class="section-dot" style="background:#8c63ff"></div>
+        <div class="section-label">多模态 — 文档 / 语音 / 视觉理解</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'whisperx')">
+          <div class="card-name">Whisper / WhisperX <span class="badge b-green">ASR</span></div>
+          <div class="card-desc">语音转写，时间戳对齐，字幕级切片</div>
+        </div>
+        <div class="card" onclick="toggle(this,'mineru')">
+          <div class="card-name">MinerU <span class="badge b-blue">PDF 解析</span></div>
+          <div class="card-desc">公式、表格、版面理解，比 OCR 更结构化</div>
+        </div>
+        <div class="card" onclick="toggle(this,'unstructured')">
+          <div class="card-name">Unstructured <span class="badge b-blue">数据接入</span></div>
+          <div class="card-desc">PDF / HTML / DOCX / 邮件统一切分</div>
+        </div>
+        <div class="card" onclick="toggle(this,'vlm')">
+          <div class="card-name">Qwen2.5-VL / GLM-4.5V / GPT-5.4 <span class="badge b-purple">VLM</span></div>
+          <div class="card-desc">图像理解、UI 理解、文档视觉问答</div>
+        </div>
+      </div>
+      <div id="whisperx" class="panel">
+        <div class="panel-title">Whisper / WhisperX —— 语音输入链路的基础层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>Whisper：</b>高质量语音转文本，适合离线批处理和轻实时</div>
+          <div class="kv"><b>WhisperX：</b>补齐对齐和 diarization，更适合会议记录、客服质检</div>
+          <div class="kv"><b>Agent 场景：</b>电话、会议、语音助手、视频内容理解</div>
+          <div class="kv"><b>经验：</b>ASR 结果要保留时间戳，后续摘要与追溯才有依据</div>
+        </div>
+      </div>
+      <div id="mineru" class="panel">
+        <div class="panel-title">MinerU —— 文档理解比传统 OCR 更适合知识库</div>
+        <div class="kv-grid">
+          <div class="kv"><b>强项：</b>识别章节、表格、公式、脚注等版面语义，不只是抠字</div>
+          <div class="kv"><b>适合：</b>论文、财报、技术文档、规范书这类复杂 PDF</div>
+          <div class="kv"><b>价值：</b>切块质量更高，后续 RAG 和问答命中率更稳</div>
+          <div class="kv"><b>替代：</b>简单扫描件仍可先走 OCR，再进入结构化清洗</div>
+        </div>
+      </div>
+      <div id="unstructured" class="panel">
+        <div class="panel-title">Unstructured —— 多源文档接入层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>作用：</b>把 PDF、网页、Word、邮件等异构文档统一转成可切分元素</div>
+          <div class="kv"><b>优势：</b>接入器多，适合做企业知识库 ingestion pipeline</div>
+          <div class="kv"><b>建议：</b>和自定义清洗、chunking、metadata enrichment 结合使用</div>
+          <div class="kv"><b>限制：</b>复杂表格和公式能力不如专门文档模型</div>
+        </div>
+      </div>
+      <div id="vlm" class="panel">
+        <div class="panel-title">Qwen2.5-VL / GLM-4.5V / GPT-5.4 —— 把图片和 UI 直接变成 Agent 输入</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>截图问答、网页理解、票据识别、图文混合摘要、视觉 RAG</div>
+          <div class="kv"><b>价值：</b>遇到结构复杂、文字和图混排时，比纯 OCR 更稳</div>
+          <div class="kv"><b>选型：</b>Qwen2.5-VL 和 GLM-4.5V 适合视觉推理、自托管或国产化场景；GPT-5.4 适合直接走高质量云端视觉能力</div>
+          <div class="kv"><b>建议：</b>保留原图引用和裁剪坐标，方便后续追溯与人工复核</div>
+          <div class="kv"><b>成本：</b>视觉 token 很贵，必须做采样、缩图和路由策略</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section multimodal" id="mm-realtime">
+      <div class="section-head">
+        <div class="section-dot" style="background:#8c63ff"></div>
+        <div class="section-label">多模态 — 实时音视频 / 交互</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'realtimeapi')">
+          <div class="card-name">gpt-realtime-1.5 / OpenAI Realtime API <span class="badge b-green">实时语音</span></div>
+          <div class="card-desc">语音输入输出、低延迟会话、interrupt</div>
+        </div>
+        <div class="card" onclick="toggle(this,'livekit')">
+          <div class="card-name">LiveKit Agents <span class="badge b-blue">RTC 基座</span></div>
+          <div class="card-desc">实时房间、语音 Agent、媒体管道</div>
+        </div>
+        <div class="card" onclick="toggle(this,'daily')">
+          <div class="card-name">Daily <span class="badge b-gray">音视频 SDK</span></div>
+          <div class="card-desc">嵌入实时会议和语音对话前端</div>
+        </div>
+        <div class="card" onclick="toggle(this,'elevenlabs')">
+          <div class="card-name">ElevenLabs <span class="badge b-amber">TTS</span></div>
+          <div class="card-desc">高自然度语音输出与声音克隆</div>
+        </div>
+      </div>
+      <div id="realtimeapi" class="panel">
+        <div class="panel-title">gpt-realtime-1.5 —— OpenAI 当前实时语音主链路</div>
+        <div class="kv-grid">
+          <div class="kv"><b>能力：</b>语音到语音、多轮中断、实时响应、工具调用整合</div>
+          <div class="kv"><b>选型：</b>实时语音优先看 gpt-realtime-1.5，预算敏感时再评估更轻量档位或 RTC + ASR / TTS 拆分方案</div>
+          <div class="kv"><b>适合：</b>客服、陪练、销售助手、车载助手、语音 Copilot</div>
+          <div class="kv"><b>关键：</b>前端要处理 VAD、中断、回声消除、网络抖动</div>
+          <div class="kv"><b>注意：</b>实时链路比文本 Agent 更考验前后端协同和成本控制</div>
+        </div>
+      </div>
+      <div id="livekit" class="panel">
+        <div class="panel-title">LiveKit Agents —— 把实时媒体能力接进 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>价值：</b>RTC、房间、track、录制、转发都成熟，不用自己搭媒体基础设施</div>
+          <div class="kv"><b>适合：</b>多人语音房间、电话桥接、实时字幕、视频 Agent</div>
+          <div class="kv"><b>组合：</b>LiveKit 负责媒体，LLM / ASR / TTS 负责智能层</div>
+          <div class="kv"><b>建议：</b>音视频场景优先上成熟 RTC，不要自己从 WebSocket 造轮子</div>
+        </div>
+      </div>
+      <div id="daily" class="panel">
+        <div class="panel-title">Daily —— 更偏产品化接入的音视频 SDK</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>快速把语音 / 视频房间嵌入现有 Web 产品</div>
+          <div class="kv"><b>优点：</b>前端体验成熟，适合快速把 Agent 做成会议助手</div>
+          <div class="kv"><b>边界：</b>智能层仍要自己接模型和编排逻辑</div>
+          <div class="kv"><b>选择：</b>若团队更重前端产品接入，可优先评估 Daily</div>
+        </div>
+      </div>
+      <div id="elevenlabs" class="panel">
+        <div class="panel-title">ElevenLabs —— 语音输出层的质量牌</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>TTS 自然度高，适合面向用户的拟人语音体验</div>
+          <div class="kv"><b>场景：</b>销售外呼、教育陪练、陪伴型 Agent、视频配音</div>
+          <div class="kv"><b>成本：</b>输出侧成本不可忽略，需要缓存常用语音片段</div>
+          <div class="kv"><b>替代：</b>成本优先时可改用自建 TTS 或云厂商基础音色</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section security" id="sec-auth">
+      <div class="section-head">
+        <div class="section-dot" style="background:#ef6f9b"></div>
+        <div class="section-label">安全 — 身份认证 / 授权</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'authjs')">
+          <div class="card-name">Auth.js <span class="badge b-green">Next.js 首选</span></div>
+          <div class="card-desc">应用级认证，Session / OAuth / Passkey</div>
+        </div>
+        <div class="card" onclick="toggle(this,'clerk')">
+          <div class="card-name">Clerk <span class="badge b-blue">托管认证</span></div>
+          <div class="card-desc">快速接入用户体系、多租户、组织</div>
+        </div>
+        <div class="card" onclick="toggle(this,'keycloak')">
+          <div class="card-name">Keycloak <span class="badge b-gray">企业 IAM</span></div>
+          <div class="card-desc">自托管 SSO、OIDC、RBAC</div>
+        </div>
+        <div class="card" onclick="toggle(this,'casbin')">
+          <div class="card-name">Casbin / OPA <span class="badge b-purple">授权策略</span></div>
+          <div class="card-desc">把“谁能调用什么工具”写成策略</div>
+        </div>
+      </div>
+      <div id="authjs" class="panel">
+        <div class="panel-title">Auth.js —— Web Agent 产品的认证默认项</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>Next.js Web Agent、后台控制台、SaaS 面板</div>
+          <div class="kv"><b>价值：</b>登录态、OAuth、邮箱登录、Passkey 都能快速接入</div>
+          <div class="kv"><b>建议：</b>认证和业务用户表拆开，避免耦合 prompt / trace 数据</div>
+          <div class="kv"><b>边界：</b>认证解决“你是谁”，授权仍要单独做</div>
+        </div>
+      </div>
+      <div id="clerk" class="panel">
+        <div class="panel-title">Clerk —— 追求交付速度时的托管认证方案</div>
+        <div class="kv-grid">
+          <div class="kv"><b>优点：</b>UI 现成，多租户组织模型成熟，前后端接入快</div>
+          <div class="kv"><b>适合：</b>Agent SaaS、需要邀请成员和组织空间的产品</div>
+          <div class="kv"><b>限制：</b>深度定制、私有化、数据驻留要求高时要谨慎</div>
+          <div class="kv"><b>结论：</b>交付速度优先时很有优势</div>
+        </div>
+      </div>
+      <div id="keycloak" class="panel">
+        <div class="panel-title">Keycloak —— 企业私有化 IAM</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>内网 Agent、政企项目、已有统一身份平台的环境</div>
+          <div class="kv"><b>能力：</b>OIDC、SAML、RBAC、组织结构整合</div>
+          <div class="kv"><b>代价：</b>运维和定制门槛比托管方案高得多</div>
+          <div class="kv"><b>推荐：</b>当合规和私有化比开发速度更重要时采用</div>
+        </div>
+      </div>
+      <div id="casbin" class="panel">
+        <div class="panel-title">Casbin / OPA —— 把工具权限和数据权限策略化</div>
+        <div class="kv-grid">
+          <div class="kv"><b>问题：</b>Agent 能调用哪些工具、读哪些知识库，不能硬编码在业务里</div>
+          <div class="kv"><b>Casbin：</b>轻量好接，适合应用层 RBAC / ABAC</div>
+          <div class="kv"><b>OPA：</b>更适合平台级策略治理，和 K8s / API 网关结合更深</div>
+          <div class="kv"><b>建议：</b>把 tool permission 当成策略，而不是 if/else</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section security" id="sec-runtime">
+      <div class="section-head">
+        <div class="section-dot" style="background:#ef6f9b"></div>
+        <div class="section-label">安全 — 秘钥 / 沙箱 / 护栏</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'vault')">
+          <div class="card-name">Vault / SOPS <span class="badge b-green">秘钥管理</span></div>
+          <div class="card-desc">模型 key、第三方凭证、动态租约</div>
+        </div>
+        <div class="card" onclick="toggle(this,'e2b')">
+          <div class="card-name">E2B / Sandbox <span class="badge b-blue">代码执行</span></div>
+          <div class="card-desc">把工具执行放进隔离环境</div>
+        </div>
+        <div class="card" onclick="toggle(this,'guardrails')">
+          <div class="card-name">Guardrails / Lakera <span class="badge b-purple">护栏</span></div>
+          <div class="card-desc">Prompt injection、PII、越权输出拦截</div>
+        </div>
+        <div class="card" onclick="toggle(this,'presidio')">
+          <div class="card-name">Presidio <span class="badge b-gray">PII 脱敏</span></div>
+          <div class="card-desc">日志、知识库、提示词中的敏感信息治理</div>
+        </div>
+      </div>
+      <div id="vault" class="panel">
+        <div class="panel-title">Vault / SOPS —— Agent 系统不能把 key 散在环境变量里</div>
+        <div class="kv-grid">
+          <div class="kv"><b>Vault：</b>动态凭证、租约、审计日志，适合生产秘钥治理</div>
+          <div class="kv"><b>SOPS：</b>GitOps / 配置文件加密很顺手，适合基础设施仓库</div>
+          <div class="kv"><b>场景：</b>OpenAI key、数据库凭证、外部 SaaS token、MCP 密钥</div>
+          <div class="kv"><b>建议：</b>模型 key 按租户 / 环境隔离，轮转机制要自动化</div>
+        </div>
+      </div>
+      <div id="e2b" class="panel">
+        <div class="panel-title">E2B / Sandbox —— 工具执行必须有隔离层</div>
+        <div class="kv-grid">
+          <div class="kv"><b>风险：</b>代码执行、网页抓取、文件操作、bash 工具都可能突破宿主环境</div>
+          <div class="kv"><b>E2B：</b>适合 Agent 的临时沙箱执行环境，接入快</div>
+          <div class="kv"><b>替代：</b>Firecracker、gVisor、自建容器沙箱适合更严格场景</div>
+          <div class="kv"><b>结论：</b>只要 Agent 能执行代码，就必须把宿主和执行环境隔开</div>
+        </div>
+      </div>
+      <div id="guardrails" class="panel">
+        <div class="panel-title">Guardrails / Lakera —— Prompt 注入和越权输出防线</div>
+        <div class="kv-grid">
+          <div class="kv"><b>作用：</b>拦截 prompt injection、越权调用、敏感信息泄漏、恶意输入</div>
+          <div class="kv"><b>位置：</b>可以放在用户输入前、模型输出后、tool 调用前多层校验</div>
+          <div class="kv"><b>建议：</b>护栏不是单一模型，最好和权限系统、工具白名单一起用</div>
+          <div class="kv"><b>经验：</b>安全要做分层防御，不能只依赖 prompt 自律</div>
+        </div>
+      </div>
+      <div id="presidio" class="panel">
+        <div class="panel-title">Presidio —— 日志与知识库里的敏感信息治理</div>
+        <div class="kv-grid">
+          <div class="kv"><b>适合：</b>客服、医疗、金融、企业内部文档等高敏场景</div>
+          <div class="kv"><b>能力：</b>PII 检测、脱敏、替换，降低日志和评测数据泄漏风险</div>
+          <div class="kv"><b>建议：</b>生产 trace、prompt 日志、eval 数据集都要做数据治理</div>
+          <div class="kv"><b>注意：</b>脱敏规则必须因语言和业务类型调整，不能开箱即用就信任</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ INFRA ══════════════ -->
+
+    <div class="section infra" id="inf-deploy">
+      <div class="section-head">
+        <div class="section-dot" style="background:#f06292"></div>
+        <div class="section-label">基础设施 — 部署 / 容器 / 网关</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="cards col4">
+        <div class="card" onclick="toggle(this,'k8s')">
+          <div class="card-name">Kubernetes <span class="badge b-blue">容器编排</span></div>
+          <div class="card-desc">多 Agent Worker 动态扩缩容</div>
+        </div>
+        <div class="card" onclick="toggle(this,'docker')">
+          <div class="card-name">Docker Compose <span class="badge b-green">开发/小型</span></div>
+          <div class="card-desc">本地开发 / 单机部署</div>
+        </div>
+        <div class="card" onclick="toggle(this,'kong')">
+          <div class="card-name">Kong / APISIX <span class="badge b-blue">API 网关</span></div>
+          <div class="card-desc">限流、鉴权、多模型路由</div>
+        </div>
+        <div class="card" onclick="toggle(this,'cf')">
+          <div class="card-name">Cloudflare Workers <span class="badge b-amber">Edge</span></div>
+          <div class="card-desc">全球边缘，Agent API 低延迟</div>
+        </div>
+      </div>
+      <div id="k8s" class="panel">
+        <div class="panel-title">Kubernetes —— 生产 Agent 集群</div>
+        <div class="kv-grid">
+          <div class="kv"><b>HPA：</b>根据队列长度自动扩缩 Agent Worker 数</div>
+          <div class="kv"><b>资源隔离：</b>LLM 计算 Pod 与 API Pod 资源隔离，互不影响</div>
+          <div class="kv"><b>滚动更新：</b>Agent 新版本灰度发布，不中断运行中任务</div>
+          <div class="kv"><b>工具：</b>Helm 管理 chart，ArgoCD GitOps 部署</div>
+        </div>
+      </div>
+      <div id="docker" class="panel">
+        <div class="panel-title">Docker Compose —— 开发 / 小型部署</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>本地开发环境一键启动（FastAPI + Redis + PG + Worker）</div>
+          <div class="kv"><b>生产：</b>单机部署 &lt;10 并发用户可用 Compose，成本低</div>
+          <div class="kv"><b>升级：</b>用量增长后平滑迁 K8s，Compose → K8s 配置可转换</div>
+        </div>
+      </div>
+      <div id="kong" class="panel">
+        <div class="panel-title">Kong / APISIX —— Agent API 网关</div>
+        <div class="kv-grid">
+          <div class="kv"><b>限流：</b>对每个 API key 独立限速，防 LLM API 超限</div>
+          <div class="kv"><b>路由：</b>按模型名路由到不同 LLM 后端（GPT-5.4 / Claude 4.6 / GLM-5 / DeepSeek-V3.2 / 本地）</div>
+          <div class="kv"><b>插件：</b>JWT 鉴权、日志、缓存，无需改 Agent 业务代码</div>
+          <div class="kv"><b>APISIX：</b>国内社区更活跃，云原生 CNCF 项目</div>
+        </div>
+      </div>
+      <div id="cf" class="panel">
+        <div class="panel-title">Cloudflare Workers —— 边缘 Agent</div>
+        <div class="kv-grid">
+          <div class="kv"><b>场景：</b>Agent API 网关部署在边缘，降低全球用户延迟</div>
+          <div class="kv"><b>配合：</b>Hono + Workers + Turso + R2 可组成零运维 Agent 后端</div>
+          <div class="kv"><b>限制：</b>CPU 时间限制（10ms/50ms），不适合计算密集 Agent</div>
+          <div class="kv"><b>AI Gateway：</b>CF 内置 AI Gateway，统一管理 LLM 调用日志</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section infra" id="inf-issues">
+      <div class="section-head">
+        <div class="section-dot" style="background:#f06292"></div>
+        <div class="section-label">常见问题 &amp; 对策</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="problem-groups">
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">模型层 / 推理层</div>
+            <div class="problem-group-desc">模型调用、RAG、策略约束和推理稳定性问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#ef5350">
+              <div class="prob-title">LLM API 限流（TPM / RPM 超限）</div>
+              <div class="prob-body">现象：大量 429 Too Many Requests，任务失败。对策：<span class="use-tag">令牌桶限流</span> 在请求前扣减 token 预算，超限时入等待队列；<span class="use-tag amber">多 Key 轮询</span> 分散到多个 API key；<span class="use-tag teal">指数退避重试</span> + 抖动；预估 token 用量做调用前预算控制。</div>
+            </div>
+            <div class="prob" style="border-left-color:#4fc3f7">
+              <div class="prob-title">RAG 召回质量低 / 幻觉</div>
+              <div class="prob-body">现象：向量检索结果不准，LLM 基于错误 context 生成幻觉。对策：<span class="use-tag blue">混合检索</span>（向量 + BM25），<span class="use-tag">Rerank 模型</span> 二次排序（Cohere / BGE）；优化分块策略（父子分块 / 滑动窗口）；在 metadata 上加过滤缩小检索空间；引入 RAG 评估（Ragas）持续监控。</div>
+            </div>
+            <div class="prob" style="border-left-color:#2a7de1">
+              <div class="prob-title">业务策略与模型输出冲突</div>
+              <div class="prob-body">现象：模型给出“看起来合理”的建议，但和业务规则、风控策略、运营策略冲突，比如不该给优惠时给了优惠。对策：<span class="use-tag">策略先行</span>，先由规则引擎裁边界，再让模型在可选范围内生成；把模型定位成解释器 / 建议器，不是最终裁决者；关键结论必须附带命中的规则或来源。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">工具层 / 执行层</div>
+            <div class="problem-group-desc">工具调用、权限、执行一致性和人工接管问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#5ad8a6">
+              <div class="prob-title">工具调用幂等性 &amp; 重复执行</div>
+              <div class="prob-body">现象：网络重试导致工具（发邮件、写 DB）被执行多次。对策：每次工具调用生成 <span class="use-tag teal">idempotency_key</span>（UUID 绑定 task+step），服务端 Redis SET NX 去重；工具执行结果缓存，相同参数直接复用 cached 结果。</div>
+            </div>
+            <div class="prob" style="border-left-color:#1eb980">
+              <div class="prob-title">工具权限漂移 / 越权调用</div>
+              <div class="prob-body">现象：Agent 随着工具越来越多，出现“本不该调用的工具被调用”“读到了不该读的数据”。对策：<span class="use-tag">最小权限</span> 默认拒绝，按角色 / 场景开放工具；用 <span class="use-tag teal">Casbin / OPA</span> 管策略；tool schema 增加作用域与敏感级别；高风险动作（退款、改价、发信）必须二次确认或人工审批。</div>
+            </div>
+            <div class="prob" style="border-left-color:#ef6f9b">
+              <div class="prob-title">人工接管链路断裂</div>
+              <div class="prob-body">现象：Agent 无法处理时虽然转人工了，但上下文、工具执行记录、用户情绪和历史状态没有一起交接。对策：<span class="use-tag">handoff packet</span> 标准化，至少包含摘要、最近动作、失败原因、用户意图、工具结果；客服工作台直接展示 trace；转人工时冻结自动回复，防止人与 Agent 同时回复。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">数据层 / 记忆层</div>
+            <div class="problem-group-desc">上下文、状态、价格信息和存储稳定性问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#7c6cfc">
+              <div class="prob-title">上下文窗口膨胀 &amp; 内存泄漏</div>
+              <div class="prob-body">现象：多轮对话后 context 越来越大，延迟线性增加。对策：<span class="use-tag">滑动窗口压缩</span>，超过阈值时摘要旧消息保留重点；<span class="use-tag blue">Redis TTL</span> 管理会话生命周期；定期 GC 孤立会话对象；对话历史分页加载不全量传入。</div>
+            </div>
+            <div class="prob" style="border-left-color:#f06292">
+              <div class="prob-title">数据库连接数耗尽</div>
+              <div class="prob-body">现象：高并发下 PG 报 "too many connections"。对策：<span class="use-tag">PgBouncer</span>（transaction 模式）连接池，最大连接数限 CPU×4 以内；读多写少加 <span class="use-tag amber">只读副本</span> 分流；慢查询必须加索引；Python asyncpg 异步驱动替代同步 psycopg2。</div>
+            </div>
+            <div class="prob" style="border-left-color:#2364ff">
+              <div class="prob-title">价格 / 库存 / 可用性信息过期</div>
+              <div class="prob-body">现象：电商、酒旅、打车等场景中，Agent 给出的价格、库存、运力或房态已经失效，用户看到的结果与真实交易结果不一致。对策：<span class="use-tag">把搜索与交易分层</span>，展示层可缓存，交易层必须实时查；对高时效字段加 <span class="use-tag blue">TTL</span> 与版本号；提交前强制二次确认；所有报价类回答附带“刷新时间 / 数据来源”。</div>
+            </div>
+            <div class="prob" style="border-left-color:#8c63ff">
+              <div class="prob-title">记忆污染 / 用户画像写错</div>
+              <div class="prob-body">现象：Agent 把一次偶然对话写成长期事实，后续反复引用错误偏好或错误身份信息。对策：<span class="use-tag">记忆分层</span>（短期摘要 / 长期事实 / 可删除偏好）；记忆写入必须带置信度与来源；关键记忆支持人工编辑与撤销；对高敏字段先不自动写入，走审核或弱引用模式。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">交互层 / 实时链路</div>
+            <div class="problem-group-desc">用户连接、实时反馈、语音和长任务体验问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#f4a535">
+              <div class="prob-title">长时任务超时 / 连接中断</div>
+              <div class="prob-body">现象：Agent 执行 30s+ 导致 HTTP 超时、前端断连。对策：<span class="use-tag">Celery / ARQ 异步化</span>，颁发 task_id；前端用 <span class="use-tag blue">SSE 轮询</span> 任务状态；<span class="use-tag amber">WebSocket</span> 保持长连接；支持断线重连续看进度。</div>
+            </div>
+            <div class="prob" style="border-left-color:#27a7d8">
+              <div class="prob-title">实时语音链路卡顿 / 打断失败</div>
+              <div class="prob-body">现象：生活服务、打车、客服等语音场景里，用户打断无效、延迟过高、TTS 还在说旧内容。对策：<span class="use-tag blue">VAD</span>、中断信号与音频缓冲必须分层处理；推理、ASR、TTS 走独立 pipeline；常用回复做短语缓存；网络抖动时允许降级到文字或半双工模式。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">运营层 / 发布层</div>
+            <div class="problem-group-desc">版本、渠道一致性、实验和运营治理问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#ba7517">
+              <div class="prob-title">Agent 执行不可观测 / 调试困难</div>
+              <div class="prob-body">现象：Agent 出错难以定位是哪步工具调用出了问题。对策：接入 <span class="use-tag">Langfuse / Phoenix</span> 记录每步 Span；结构化日志（JSON）+ 全局 trace_id 串联；每步工具调用记录 input/output/latency/cost；生产环境采样记录，开发环境全量记录。</div>
+            </div>
+            <div class="prob" style="border-left-color:#5a6b7f">
+              <div class="prob-title">多渠道答案不一致</div>
+              <div class="prob-body">现象：同一个问题在 App、客服台、电话、商家后台里回答不同，用户和运营都不信任系统。对策：<span class="use-tag">知识源统一</span>，Prompt 与政策内容版本化；把 FAQ、政策、价格说明、话术从“页面里复制”升级为共享配置中心；发布时做渠道一致性回归测试。</div>
+            </div>
+            <div class="prob" style="border-left-color:#da4d58">
+              <div class="prob-title">A/B 实验和 Prompt 版本失控</div>
+              <div class="prob-body">现象：同一业务同时跑多个 Prompt、模型和工具版本，却没有清晰记录，导致效果回溯困难。对策：<span class="use-tag">Prompt 版本化</span>、模型版本化、工具版本化统一挂到 trace；实验流量走明确分桶；上线前后固定看 <span class="use-tag blue">成功率 / 转化率 / 成本 / 人工接管率</span> 四类指标，不只看主观效果。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-group">
+          <div class="problem-group-head">
+            <div class="problem-group-title">合规层 / 安全层</div>
+            <div class="problem-group-desc">内容审核、监管规则、敏感信息和发布安全问题</div>
+          </div>
+          <div class="problems">
+            <div class="prob" style="border-left-color:#e79d2c">
+              <div class="prob-title">内容审核 / 合规拦截不完整</div>
+              <div class="prob-body">现象：内容创作、电商、客服场景中，模型输出或工具结果触碰版权、广告法、医疗金融合规或平台审核规则。对策：<span class="use-tag amber">多层审核</span>：输入前、生成后、发布前分别检查；文本、图片、音频分开审；高风险行业引入 <span class="use-tag red">规则引擎 + 人工复核</span>，不要只靠单一审核模型。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  Agent 全栈技术选型指南 · 点击卡片展开选型依据
+</div>
+
+<script>
+function toggle(card, id) {
+  var panel = document.getElementById(id);
+  var isActive = card.classList.contains('active');
+  document.querySelectorAll('.card.active').forEach(function(c){ c.classList.remove('active'); });
+  document.querySelectorAll('.panel.show').forEach(function(p){ p.classList.remove('show'); });
+  if (!isActive) {
+    card.classList.add('active');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+var SECTION_FILTERS = ['scenario', 'frontend', 'backend', 'database', 'agent', 'serving', 'multimodal', 'observability', 'security', 'infra'];
+
+function getTargetFilter(target) {
+  if (!target || !target.classList) return null;
+  for (var i = 0; i < SECTION_FILTERS.length; i++) {
+    if (target.classList.contains(SECTION_FILTERS[i])) return SECTION_FILTERS[i];
+  }
+  return null;
+}
+
+function scrollWithOffset(target) {
+  var header = document.querySelector('.header');
+  var headerOffset = header ? header.offsetHeight + 12 : 12;
+  var targetTop = window.pageYOffset + target.getBoundingClientRect().top - headerOffset;
+  window.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior: 'smooth'
+  });
+}
+
+function scrollToSection(id) {
+  var target = document.getElementById(id);
+  if (!target) return;
+  var cls = getTargetFilter(target);
+  if (target.style.display === 'none') {
+    if (cls) {
+      var btn = document.querySelector('.htag[data-filter="' + cls + '"]');
+      if (btn) {
+        filterSection(cls, btn);
+      } else {
+        var allBtnFallback = document.querySelector('.htag[data-filter="all"]');
+        if (allBtnFallback) filterAll(allBtnFallback);
+      }
+    } else {
+      var allBtn = document.querySelector('.htag[data-filter="all"]');
+      if (allBtn) filterAll(allBtn);
+    }
+  }
+  scrollWithOffset(target);
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  if (window.event && event.target && event.target.classList.contains('nav-item')) {
+    event.target.classList.add('active');
+  }
+}
+
+function focusSection(id, cls) {
+  if (cls) {
+    var btn = document.querySelector('.htag[data-filter="' + cls + '"]');
+    if (btn) filterSection(cls, btn);
+  } else {
+    var allBtn = document.querySelector('.htag[data-filter="all"]');
+    if (allBtn) filterAll(allBtn);
+  }
+  scrollToSection(id);
+}
+
+function shouldKeepVisible(section) {
+  return section.dataset && section.dataset.persistent === 'true';
+}
+
+function filterAll(btn) {
+  document.querySelectorAll('.section').forEach(function(s){ s.style.display = ''; });
+  document.querySelectorAll('.htag').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function filterSection(cls, btn) {
+  document.querySelectorAll('.section').forEach(function(s){
+    s.style.display = (shouldKeepVisible(s) || s.classList.contains(cls)) ? '' : 'none';
+  });
+  document.querySelectorAll('.htag').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+window.addEventListener('scroll', function() {
+  var sections = document.querySelectorAll('.section, .hero-shell[id]');
+  var navItems = document.querySelectorAll('.nav-item');
+  var scrollY = window.scrollY || document.documentElement.scrollTop;
+  var current = '';
+  sections.forEach(function(s) {
+    if (s.offsetTop <= scrollY + 80) current = s.id;
+  });
+  navItems.forEach(function(n) {
+    n.classList.remove('active');
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + current + "'")) {
+      n.classList.add('active');
+    }
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
