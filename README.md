@@ -2,6 +2,16 @@
 
 An interactive static map for AI agent stack selection.
 
+## Online
+
+GitHub Pages:
+
+[https://zirenli-001.github.io/agent_atals/](https://zirenli-001.github.io/agent_atals/)
+
+Repository:
+
+[https://github.com/ZIRENLI-001/agent_atals](https://github.com/ZIRENLI-001/agent_atals)
+
 ## Local preview
 
 Open `agent_stack.html` directly in a browser, or use `index.html` as the entry page.
@@ -17,9 +27,9 @@ After pushing to GitHub:
 3. Ensure the source is `GitHub Actions`.
 4. The site will be published automatically on push to `main`.
 
-Expected URL:
+Published URL:
 
-`https://<your-github-username>.github.io/agent-atlas/`
+[https://zirenli-001.github.io/agent_atals/](https://zirenli-001.github.io/agent_atals/)
 
 ## Files
 
