@@ -1,6 +1,6 @@
-# Agent Atlas
+# agent atals
 
-An interactive static map for AI Agent stack selection.
+An interactive static map for AI agent stack selection.
 
 ## Local preview
 
